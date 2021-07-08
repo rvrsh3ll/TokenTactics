@@ -30,11 +30,6 @@ function Parse-JWTtoken {
     return $tokobj
 }
 
-function Import-Modules {
-    Import-Module Az
-    Import-Module AzureAD
-    Import-Module AADInternals
-}
 function Get-AzureToken {
     <#
     .DESCRIPTION
@@ -57,119 +52,117 @@ function Get-AzureToken {
         
     )
     
-        if($Client -eq "Outlook") {
+    if($Client -eq "Outlook") {
 
-            $body=@{
-                "client_id" = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
-                "resource" =  "https://outlook.office365.com"
-            }
-        }
-        elseif ($Client -eq "Substrate") {
-    
-            $body=@{
-                "client_id" = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
-                "resource" =  "https://substrate.office.com"
-            }
-        }
-        elseif ($Client -eq "Custom") {
-    
-            $body=@{
-                "client_id" = $ClientID
-                "resource" =  $Resource
-            }
-        }
-        elseif ($Client -eq "Teams") {
-            
-            $body = @{
-                "client_id" =     "d3590ed6-52b3-4102-aeff-aad2292ab01c"
-                "resource" =      "https://api.spaces.skype.com"   
-            }
-        }
-        elseif ($Client -eq "Graph") {
-            
-            $body = @{
-                "client_id" =     "d3590ed6-52b3-4102-aeff-aad2292ab01c"
-                "resource" =      "https://graph.windows.net"  
-            }
-        }
-        elseif ($Client -eq "MSGraph") {
-            
-            $body = @{
-                "client_id" =     "d3590ed6-52b3-4102-aeff-aad2292ab01c"
-                "resource" =      "https://graph.microsoft.com"  
-            }
-        }
-        elseif ($Client -eq "Webshell") {
-            
-            $body = @{
-                "client_id" =     "89bee1f7-5e6e-4d8a-9f3d-ecd601259da7"
-                "resource" =      "https://webshell.suite.office.com"  
-            }
-        }
-        
-        elseif ($Client -eq "Core") {
-            
-            $body = @{
-                "client_id" =     "d3590ed6-52b3-4102-aeff-aad2292ab01c"
-                "resource" =      "https://management.core.windows.net"
-            }
-        }
-
-        # Login Process
-        $authResponse = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.com/common/oauth2/devicecode?api-version=1.0" -Body $body
-        write-output $authResponse
-        $continue = $true
-        $interval = $authResponse.interval
-        $expires =  $authResponse.expires_in
         $body=@{
-            "client_id" =  $ClientID
-            "grant_type" = "urn:ietf:params:oauth:grant-type:device_code"
-            "code" =       $authResponse.device_code
+            "client_id" = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+            "resource" =  "https://outlook.office365.com"
         }
-        while($continue)
-        {
-            Start-Sleep -Seconds $interval
-            $total += $interval
+    }
+    elseif ($Client -eq "Substrate") {
 
-            if($total -gt $expires)
-            {
-                Write-Error "Timeout occurred"
-                return
-            }          
-            # Try to get the response. Will give 40x while pending so we need to try&catch
-            try
-            {
-                $global:response = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.com/Common/oauth2/token?api-version=1.0 " -Body $body -ErrorAction SilentlyContinue
-            }
-            catch
-            {
-                # This is normal flow, always returns 40x unless successful
-                $details=$_.ErrorDetails.Message | ConvertFrom-Json
-                $continue = $details.error -eq "authorization_pending"
-                Write-Output $details.error
+        $body=@{
+            "client_id" = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+            "resource" =  "https://substrate.office.com"
+        }
+    }
+    elseif ($Client -eq "Custom") {
 
-                if(!$continue)
-                {
-                    # Not pending so this is a real error
-                    Write-Error $details.error_description
-                    return
-                }
-            }
-
-            # If we got response, all okay!
-            if($response)
-            {
-                write-output $response
-                $jwt = $response.access_token
-                
-                $output = Parse-JWTtoken -token $jwt
-                $global:upn = $output.upn
-                write-output $upn
-                break
-            }
+        $body=@{
+            "client_id" = $ClientID
+            "resource" =  $Resource
+        }
+    }
+    elseif ($Client -eq "Teams") {
+        
+        $body = @{
+            "client_id" =     "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+            "resource" =      "https://api.spaces.skype.com"   
+        }
+    }
+    elseif ($Client -eq "Graph") {
+        
+        $body = @{
+            "client_id" =     "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+            "resource" =      "https://graph.windows.net"  
+        }
+    }
+    elseif ($Client -eq "MSGraph") {
+        
+        $body = @{
+            "client_id" =     "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+            "resource" =      "https://graph.microsoft.com"  
+        }
+    }
+    elseif ($Client -eq "Webshell") {
+        
+        $body = @{
+            "client_id" =     "89bee1f7-5e6e-4d8a-9f3d-ecd601259da7"
+            "resource" =      "https://webshell.suite.office.com"  
+        }
+    }
+    
+    elseif ($Client -eq "Core") {
+        
+        $body = @{
+            "client_id" =     "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+            "resource" =      "https://management.core.windows.net"
         }
     }
 
+    # Login Process
+    $authResponse = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.com/common/oauth2/devicecode?api-version=1.0" -Body $body
+    write-output $authResponse
+    $continue = $true
+    $interval = $authResponse.interval
+    $expires =  $authResponse.expires_in
+    $body=@{
+        "client_id" =  $ClientID
+        "grant_type" = "urn:ietf:params:oauth:grant-type:device_code"
+        "code" =       $authResponse.device_code
+    }
+    while($continue)
+    {
+        Start-Sleep -Seconds $interval
+        $total += $interval
+
+        if($total -gt $expires)
+        {
+            Write-Error "Timeout occurred"
+            return
+        }          
+        # Try to get the response. Will give 40x while pending so we need to try&catch
+        try
+        {
+            $global:response = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.com/Common/oauth2/token?api-version=1.0 " -Body $body -ErrorAction SilentlyContinue
+        }
+        catch
+        {
+            # This is normal flow, always returns 40x unless successful
+            $details=$_.ErrorDetails.Message | ConvertFrom-Json
+            $continue = $details.error -eq "authorization_pending"
+            Write-Output $details.error
+
+            if(!$continue)
+            {
+                # Not pending so this is a real error
+                Write-Error $details.error_description
+                return
+            }
+        }
+
+        # If we got response, all okay!
+        if($response)
+        {
+            write-output $response
+            $jwt = $response.access_token
+            
+            $output = Parse-JWTtoken -token $jwt
+            $global:upn = $output.upn
+            write-output $upn
+            break
+        }
+    }
 }
 # Refresh Token Functions
 function RefreshTo-SubstrateToken {
