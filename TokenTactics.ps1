@@ -197,7 +197,7 @@ function RefreshTo-SubstrateToken {
     $global:SubstrateToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Body $body
     Write-Output $SubstrateToken
 }
-function RefreshTo-MSManage {
+function RefreshTo-MSManageToken {
     <#
     .DESCRIPTION
         Generate a manage token from a refresh token.
@@ -227,23 +227,6 @@ function RefreshTo-MSManage {
 
     $global:MSManageToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Body $body
     Write-Output $MSManageToken
-}
-function RefreshTo-OpenIDToken {
-    [cmdletbinding()]
-    Param(
-        [Parameter(Mandatory=$false)]
-        [string]$domain,
-        [Parameter(Mandatory=$false)]
-        [string]$refreshToken = $response.refresh_token
-        
-    )
-    
-    $Resource = "https://substrate.office.com/owa/NotesClient"
-    
-    
-    
-    $global:OpenIDToken = Invoke-RestMethod -Method Get -Uri "https://substrate.office.com/owa/NotesClient" -Headers @{"Authorization"="Bearer $refreshToken.access_token"}
-    Write-Output $OpenIDToken
 }
 function RefreshTo-MSTeamsToken {
     <#

@@ -23,7 +23,7 @@ Once the user has logged in, you'll be presented with the JWT and it will be sav
 
 ### Refresh or Switch Tokens
 
-```RefreshTo-Outlook -domain myclient.org -refreshToken ey..```
+```RefreshTo-OutlookToken -domain myclient.org -refreshToken ey..```
 
 ```$OutlookToken.access_token```
 
