@@ -11,7 +11,9 @@ You may also use these tokens with [AAD Internals](https://o365blog.com/aadinter
 ## Installation and Usage
 
 ```Import-Module .\TokenTamper.ps1```
+
 ```Get-Help Get-Azure-Token```
+
 ```RefreshTo-SubstrateToken```
 
 ### Generate Device Code
@@ -22,6 +24,7 @@ Once the user has logged in, you'll be presented with the JWT and it will be sav
 ### Refresh or Switch Tokens
 
 ```RefreshTo-Outlook -domain myclient.org -refreshToken ey..```
+
 ```$OutlookToken.access_token```
 
 ### Connect
