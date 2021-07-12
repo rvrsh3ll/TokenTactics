@@ -43,6 +43,9 @@ $functions=@(
     "RefreshTo-DODMSGraphToken"
     # CapBypass.ps1
     "Forge-UserAgent"
+    # OutlookEmailAbuse.ps1
+    "Open-OWAMailboxInBrowser"
+    "Dump-OWAMailboxViaMSGraphApi"
 )
 $c = 0
 foreach($function in $functions)
