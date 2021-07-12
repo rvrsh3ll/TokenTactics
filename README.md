@@ -12,7 +12,7 @@ You may also use these tokens with [AAD Internals](https://o365blog.com/aadinter
 
 ## Installation and Usage
 
-```Import-Module .\TokenTactics.ps1```
+```Import-Module .\TokenTactics.psd1```
 
 ```Get-Help Get-Azure-Token```
 

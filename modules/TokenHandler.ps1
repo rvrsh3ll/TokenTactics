@@ -17,10 +17,32 @@ function Get-AzureToken {
         $ClientID = "d3590ed6-52b3-4102-aeff-aad2292ab01c",    
         [Parameter(Mandatory=$False)]
         [String]
-        $Resource = "https://graph.microsoft.com"
-        
+        $Resource = "https://graph.microsoft.com",
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+        [String]$Device,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+        [String]$Browser
     )
-    
+    if ($Device) {
+		if ($Browser) {
+			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+		}
+		else {
+			$UserAgent = Forge-UserAgent -Device $Device
+		}
+	}
+	else {
+	   if ($Browser) {
+			$UserAgent = Forge-UserAgent -Browser $Browser 
+	   } 
+	   else {
+			$UserAgent = Forge-UserAgent
+	   }
+	}    
+    $Headers=@{}
+    $Headers["User-Agent"] = $UserAgent
     if($Client -eq "Outlook") {
 
         $body=@{
@@ -79,7 +101,7 @@ function Get-AzureToken {
     }    
     if ($client -match "DOD") {
         # DOD Login Process
-        $authResponse = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.us/common/oauth2/devicecode?api-version=1.0" -Body $body
+        $authResponse = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.us/common/oauth2/devicecode?api-version=1.0" -Headers $Headers -Body $body
         write-output $authResponse
         $continue = $true
         $interval = $authResponse.interval
@@ -102,7 +124,7 @@ function Get-AzureToken {
             # Try to get the response. Will give 40x while pending so we need to try&catch
             try
             {
-                $global:response = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.us/Common/oauth2/token?api-version=1.0 " -Body $body -ErrorAction SilentlyContinue
+                $global:response = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.us/Common/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body -ErrorAction SilentlyContinue
             }
             catch
             {
@@ -135,7 +157,7 @@ function Get-AzureToken {
 
     else {
         # Login Process
-        $authResponse = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.com/common/oauth2/devicecode?api-version=1.0" -Body $body -ErrorAction SilentlyContinue
+        $authResponse = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.com/common/oauth2/devicecode?api-version=1.0" -Headers $Headers -Body $body -ErrorAction SilentlyContinue
         write-output $authResponse
         $continue = $true
         $interval = $authResponse.interval
@@ -158,7 +180,7 @@ function Get-AzureToken {
             # Try to get the response. Will give 40x while pending so we need to try&catch
             try
             {
-                $global:response = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.com/Common/oauth2/token?api-version=1.0 " -Body $body -ErrorAction SilentlyContinue
+                $global:response = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.com/Common/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body -ErrorAction SilentlyContinue
             }
             catch
             {
@@ -203,8 +225,32 @@ function RefreshTo-SubstrateToken {
     Param([Parameter(Mandatory=$true)]
     [string]$domain,
     [Parameter(Mandatory=$false)]
-    [string]$refreshToken = $response.refresh_token
+    [string]$refreshToken = $response.refresh_token,
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+    [String]$Device,
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+    [String]$Browser
     )
+    if ($Device) {
+		if ($Browser) {
+			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+		}
+		else {
+			$UserAgent = Forge-UserAgent -Device $Device
+		}
+	}
+	else {
+	   if ($Browser) {
+			$UserAgent = Forge-UserAgent -Browser $Browser 
+	   } 
+	   else {
+			$UserAgent = Forge-UserAgent
+	   }
+	}    
+    $Headers=@{}
+    $Headers["User-Agent"] = $UserAgent
     $Resource = "https://substrate.office.com"
     $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
@@ -219,7 +265,7 @@ function RefreshTo-SubstrateToken {
         "scope" = "openid"
     }
 
-    $global:SubstrateToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Body $body
+    $global:SubstrateToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body
     Write-Output $SubstrateToken
 }
 function RefreshTo-MSManageToken {
@@ -234,8 +280,32 @@ function RefreshTo-MSManageToken {
     Param([Parameter(Mandatory=$true)]
     [string]$domain,
     [Parameter(Mandatory=$false)]
-    [string]$refreshToken = $response.refresh_token
+    [string]$refreshToken = $response.refresh_token,
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+    [String]$Device,
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+    [String]$Browser
     )
+    if ($Device) {
+		if ($Browser) {
+			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+		}
+		else {
+			$UserAgent = Forge-UserAgent -Device $Device
+		}
+	}
+	else {
+	   if ($Browser) {
+			$UserAgent = Forge-UserAgent -Browser $Browser 
+	   } 
+	   else {
+			$UserAgent = Forge-UserAgent
+	   }
+	}    
+    $Headers=@{}
+    $Headers["User-Agent"] = $UserAgent
     $Resource = "https://enrollment.manage.microsoft.com"
     $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
@@ -250,7 +320,7 @@ function RefreshTo-MSManageToken {
         "scope" = "openid"
     }
 
-    $global:MSManageToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Body $body
+    $global:MSManageToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body
     Write-Output $MSManageToken
 }
 function RefreshTo-MSTeamsToken {
@@ -265,8 +335,32 @@ function RefreshTo-MSTeamsToken {
     Param([Parameter(Mandatory=$true)]
     [string]$domain,
     [Parameter(Mandatory=$false)]
-    [string]$refreshToken = $response.refresh_token
+    [string]$refreshToken = $response.refresh_token,
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+    [String]$Device,
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+    [String]$Browser
     )
+    if ($Device) {
+		if ($Browser) {
+			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+		}
+		else {
+			$UserAgent = Forge-UserAgent -Device $Device
+		}
+	}
+	else {
+	   if ($Browser) {
+			$UserAgent = Forge-UserAgent -Browser $Browser 
+	   } 
+	   else {
+			$UserAgent = Forge-UserAgent
+	   }
+	}    
+    $Headers=@{}
+    $Headers["User-Agent"] = $UserAgent
     $Resource = "https://api.spaces.skype.com"
     $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
@@ -281,7 +375,7 @@ function RefreshTo-MSTeamsToken {
         "scope" = "openid"
     }
 
-    $global:MSTeamsToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Body $body
+    $global:MSTeamsToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body
     Write-Output $MSTeamsToken
 }
 function RefreshTo-ManageOfficeToken {
@@ -296,8 +390,32 @@ function RefreshTo-ManageOfficeToken {
     Param([Parameter(Mandatory=$true)]
     [string]$domain,
     [Parameter(Mandatory=$false)]
-    [string]$refreshToken = $response.refresh_token
+    [string]$refreshToken = $response.refresh_token,
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+    [String]$Device,
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+    [String]$Browser
     )
+    if ($Device) {
+		if ($Browser) {
+			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+		}
+		else {
+			$UserAgent = Forge-UserAgent -Device $Device
+		}
+	}
+	else {
+	   if ($Browser) {
+			$UserAgent = Forge-UserAgent -Browser $Browser 
+	   } 
+	   else {
+			$UserAgent = Forge-UserAgent
+	   }
+	}    
+    $Headers=@{}
+    $Headers["User-Agent"] = $UserAgent
     $Resource = "https://manage.office.com"
     $ClientId = "00b41c95-dab0-4487-9791-b9d2c32c80f2"
     $TenantId = Get-TenantID -domain $domain
@@ -312,7 +430,7 @@ function RefreshTo-ManageOfficeToken {
         "scope"=         "openid"
     }
 
-    $global:OfficeManagementToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Body $body
+    $global:OfficeManagementToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body
     Write-Output $OfficeManagementToken
 }
 function RefreshTo-OutlookToken {
@@ -327,8 +445,32 @@ function RefreshTo-OutlookToken {
     Param([Parameter(Mandatory=$true)]
     [string]$domain,
     [Parameter(Mandatory=$false)]
-    [string]$refreshToken = $response.refresh_token
+    [string]$refreshToken = $response.refresh_token,
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+    [String]$Device,
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+    [String]$Browser
     )
+    if ($Device) {
+		if ($Browser) {
+			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+		}
+		else {
+			$UserAgent = Forge-UserAgent -Device $Device
+		}
+	}
+	else {
+	   if ($Browser) {
+			$UserAgent = Forge-UserAgent -Browser $Browser 
+	   } 
+	   else {
+			$UserAgent = Forge-UserAgent
+	   }
+	}    
+    $Headers=@{}
+    $Headers["User-Agent"] = $UserAgent
     $Resource = "https://outlook.office365.com"
     $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
@@ -343,7 +485,7 @@ function RefreshTo-OutlookToken {
         "scope"=         "openid"
     }
 
-    $global:OutlookToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Body $body
+    $global:OutlookToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body
     Write-Output $OutlookToken
 }
 function RefreshTo-MSGraphToken {
@@ -360,8 +502,32 @@ function RefreshTo-MSGraphToken {
     [Parameter(Mandatory=$false)]
     [string]$refreshToken = $response.refresh_token,
     [Parameter(Mandatory=$false)]
-    [string]$ClientID = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+    [string]$ClientID = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+    [String]$Device,
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+    [String]$Browser
     )
+    if ($Device) {
+		if ($Browser) {
+			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+		}
+		else {
+			$UserAgent = Forge-UserAgent -Device $Device
+		}
+	}
+	else {
+	   if ($Browser) {
+			$UserAgent = Forge-UserAgent -Browser $Browser 
+	   } 
+	   else {
+			$UserAgent = Forge-UserAgent
+	   }
+	}    
+    $Headers=@{}
+    $Headers["User-Agent"] = $UserAgent
       
     $Resource = "https://graph.microsoft.com"
     $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
@@ -377,7 +543,7 @@ function RefreshTo-MSGraphToken {
         "scope"=         "openid"
     }
 
-    $global:MSGraphToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Body $body
+    $global:MSGraphToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body
     Write-Output $MSGraphToken
 }
 function RefreshTo-GraphToken {
@@ -395,8 +561,32 @@ function RefreshTo-GraphToken {
         [Parameter(Mandatory=$false)]
         [string]$refreshToken = $response.refresh_token,
         [Parameter(Mandatory=$false)]
-        [string]$ClientID = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+        [string]$ClientID = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+        [String]$Device,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+        [String]$Browser
     )
+    if ($Device) {
+		if ($Browser) {
+			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+		}
+		else {
+			$UserAgent = Forge-UserAgent -Device $Device
+		}
+	}
+	else {
+	   if ($Browser) {
+			$UserAgent = Forge-UserAgent -Browser $Browser 
+	   } 
+	   else {
+			$UserAgent = Forge-UserAgent
+	   }
+	}    
+    $Headers=@{}
+    $Headers["User-Agent"] = $UserAgent
     $Resource = "https://graph.windows.net"
     $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
@@ -410,7 +600,7 @@ function RefreshTo-GraphToken {
         "refresh_token" = $refreshToken
         "scope"=         "openid"
     }
-    $global:GraphToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Body $body
+    $global:GraphToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body
     Write-Output $GraphToken
 }
 function RefreshTo-OfficeAppsToken {
@@ -428,8 +618,32 @@ function RefreshTo-OfficeAppsToken {
         [Parameter(Mandatory=$false)]
         [string]$refreshToken = $response.refresh_token,
         [Parameter(Mandatory=$false)]
-        [string]$ClientID = "ab9b8c07-8f02-4f72-87fa-80105867a763"
-        )
+        [string]$ClientID = "ab9b8c07-8f02-4f72-87fa-80105867a763",
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+        [String]$Device,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+        [String]$Browser
+    )
+    if ($Device) {
+		if ($Browser) {
+			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+		}
+		else {
+			$UserAgent = Forge-UserAgent -Device $Device
+		}
+	}
+	else {
+	   if ($Browser) {
+			$UserAgent = Forge-UserAgent -Browser $Browser 
+	   } 
+	   else {
+			$UserAgent = Forge-UserAgent
+	   }
+	}    
+    $Headers=@{}
+    $Headers["User-Agent"] = $UserAgent
 
     $Resource = "https://officeapps.live.com"
     $ClientId = "ab9b8c07-8f02-4f72-87fa-80105867a763"
@@ -445,7 +659,7 @@ function RefreshTo-OfficeAppsToken {
         "scope"=         "openid"
     }
     
-    $global:OfficeAppsToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Body $body2
+    $global:OfficeAppsToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body2
     Write-Output $OfficeAppsToken
 }
 function RefreshTo-AzureCoreManagementToken {
@@ -461,8 +675,32 @@ function RefreshTo-AzureCoreManagementToken {
         [Parameter(Mandatory=$true)]
         [string]$domain,
         [Parameter(Mandatory=$false)]
-        [string]$refreshToken = $response.refresh_token
-        )
+        [string]$refreshToken = $response.refresh_token,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+        [String]$Device,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+        [String]$Browser
+    )
+    if ($Device) {
+		if ($Browser) {
+			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+		}
+		else {
+			$UserAgent = Forge-UserAgent -Device $Device
+		}
+	}
+	else {
+	   if ($Browser) {
+			$UserAgent = Forge-UserAgent -Browser $Browser 
+	   } 
+	   else {
+			$UserAgent = Forge-UserAgent
+	   }
+	}    
+    $Headers=@{}
+    $Headers["User-Agent"] = $UserAgent
     $Resource = "https://management.core.windows.net"
     $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
@@ -477,7 +715,7 @@ function RefreshTo-AzureCoreManagementToken {
         "scope"=         "openid"
     }
 
-    $global:AzureCoreManagementToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Body $body
+    $global:AzureCoreManagementToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body
     Write-Output $AzureCoreManagementToken
 }
 function RefreshTo-AzureManagementToken {
@@ -493,8 +731,32 @@ function RefreshTo-AzureManagementToken {
         [Parameter(Mandatory=$true)]
         [string]$domain,
         [Parameter(Mandatory=$false)]
-        [string]$refreshToken = $response.refresh_token
-        )
+        [string]$refreshToken = $response.refresh_token,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+        [String]$Device,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+        [String]$Browser
+    )
+    if ($Device) {
+		if ($Browser) {
+			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+		}
+		else {
+			$UserAgent = Forge-UserAgent -Device $Device
+		}
+	}
+	else {
+	   if ($Browser) {
+			$UserAgent = Forge-UserAgent -Browser $Browser 
+	   } 
+	   else {
+			$UserAgent = Forge-UserAgent
+	   }
+	}    
+    $Headers=@{}
+    $Headers["User-Agent"] = $UserAgent
     $Resource = "https://management.azure.com"
     $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
@@ -509,7 +771,7 @@ function RefreshTo-AzureManagementToken {
         "scope"=         "openid"
     }
 
-    $global:AzureManagementToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Body $body
+    $global:AzureManagementToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body
     Write-Output $AzureManagementToken
 }
 function RefreshTo-MAMToken {
@@ -525,8 +787,32 @@ function RefreshTo-MAMToken {
         [Parameter(Mandatory=$true)]
         [string]$domain,
         [Parameter(Mandatory=$false)]
-        [string]$refreshToken = $response.refresh_token
-        )
+        [string]$refreshToken = $response.refresh_token,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+        [String]$Device,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+        [String]$Browser
+    )
+    if ($Device) {
+		if ($Browser) {
+			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+		}
+		else {
+			$UserAgent = Forge-UserAgent -Device $Device
+		}
+	}
+	else {
+	   if ($Browser) {
+			$UserAgent = Forge-UserAgent -Browser $Browser 
+	   } 
+	   else {
+			$UserAgent = Forge-UserAgent
+	   }
+	}    
+    $Headers=@{}
+    $Headers["User-Agent"] = $UserAgent
     $Resource = "https://intunemam.microsoftonline.com"
     $ClientId = "6c7e8096-f593-4d72-807f-a5f86dcc9c77"
     $TenantId = Get-TenantID -domain $domain
@@ -541,7 +827,7 @@ function RefreshTo-MAMToken {
         "scope"=         "openid"
     }
 
-    $global:MAMToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Body $body
+    $global:MAMToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body
     Write-Output $MamToken
 }
 function RefreshTo-DODMSGraphToken {
@@ -558,8 +844,32 @@ function RefreshTo-DODMSGraphToken {
     [Parameter(Mandatory=$false)]
     [string]$refreshToken = $response.refresh_token,
     [Parameter(Mandatory=$false)]
-    [string]$ClientID = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+    [string]$ClientID = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+    [String]$Device,
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+    [String]$Browser
     )
+    if ($Device) {
+		if ($Browser) {
+			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+		}
+		else {
+			$UserAgent = Forge-UserAgent -Device $Device
+		}
+	}
+	else {
+	   if ($Browser) {
+			$UserAgent = Forge-UserAgent -Browser $Browser 
+	   } 
+	   else {
+			$UserAgent = Forge-UserAgent
+	   }
+	}    
+    $Headers=@{}
+    $Headers["User-Agent"] = $UserAgent
       
     $Resource = "https://dod-graph.microsoft.us"
     $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
@@ -575,6 +885,6 @@ function RefreshTo-DODMSGraphToken {
         "scope"=         "openid"
     }
 
-    $global:DODMSGraphToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Body $body
+    $global:DODMSGraphToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body
     Write-Output $DODMSGraphToken
 }

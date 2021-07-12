@@ -41,6 +41,8 @@ $functions=@(
     "RefreshTo-AzureManagementToken"
     "RefreshTo-MAMToken"
     "RefreshTo-DODMSGraphToken"
+    # CapBypass.ps1
+    "Forge-UserAgent"
 )
 $c = 0
 foreach($function in $functions)
