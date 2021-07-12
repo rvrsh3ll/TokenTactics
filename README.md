@@ -6,6 +6,8 @@ Azure JWT's allow you to authenticate to certain endpoints as the user who signe
 
 For instance, if you have a Graph or MSGraph token, you can then connect to Azure and dump users, groups, etc. You could then, depending on conditional access policies, switch to an Azure Core Management token and run [AzureHound](https://github.com/BloodHoundAD/AzureHound). Then, switch to an Outlook token and read/send emails! 
 
+There are some example requests to endpoints in the resources folder.
+
 You may also use these tokens with [AAD Internals](https://o365blog.com/aadinternals/) as well.
 
 ## Installation and Usage
@@ -20,6 +22,9 @@ You may also use these tokens with [AAD Internals](https://o365blog.com/aadinter
 
 ```Get-AzureToken -Client MSGraph```
 Once the user has logged in, you'll be presented with the JWT and it will be saved in the $response variable. To access the access token use ```$response.access_token``` from your PowerShell window to display the token. You may also display the refresh token with ```$response.refresh_token```. Hint: You'll want the refresh token to keep refreshing to new tokens!
+
+#### DOD/Mil Device Code
+```Get-AzureToken -Client DODMSGraph```
 
 ### Refresh or Switch Tokens
 
