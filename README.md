@@ -35,6 +35,31 @@ Once the user has logged in, you'll be presented with the JWT and it will be sav
 ### Connect
 ```Connect-AzureAD -AadAccessToken $response.access_token -AccountId user@myclient.org```
 
+### Commands
+```powershell
+Get-Command -Module TokenTactics
+
+CommandType     Name                                               Version    Source
+-----------     ----                                               -------    ------
+Function        Dump-OWAMailboxViaMSGraphApi                       0.0.1      TokenTactics
+Function        Forge-UserAgent                                    0.0.1      TokenTactics
+Function        Get-AzureToken                                     0.0.1      TokenTactics
+Function        Get-TenantID                                       0.0.1      TokenTactics
+Function        Open-OWAMailboxInBrowser                           0.0.1      TokenTactics
+Function        Parse-JWTtoken                                     0.0.1      TokenTactics
+Function        RefreshTo-AzureCoreManagementToken                 0.0.1      TokenTactics
+Function        RefreshTo-AzureManagementToken                     0.0.1      TokenTactics
+Function        RefreshTo-DODMSGraphToken                          0.0.1      TokenTactics
+Function        RefreshTo-GraphToken                               0.0.1      TokenTactics
+Function        RefreshTo-MAMToken                                 0.0.1      TokenTactics
+Function        RefreshTo-ManageOfficeToken                        0.0.1      TokenTactics
+Function        RefreshTo-MSGraphToken                             0.0.1      TokenTactics
+Function        RefreshTo-MSManageToken                            0.0.1      TokenTactics
+Function        RefreshTo-MSTeamsToken                             0.0.1      TokenTactics
+Function        RefreshTo-OfficeAppsToken                          0.0.1      TokenTactics
+Function        RefreshTo-OutlookToken                             0.0.1      TokenTactics
+Function        RefreshTo-SubstrateToken                           0.0.1      TokenTactics
+```
 
 ## Authors and contributors
 - [@0xBoku](https://github.com/boku7) co-author and researcher.
