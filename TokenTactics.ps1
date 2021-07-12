@@ -31,6 +31,7 @@ function Parse-JWTtoken {
 }
 
 function Get-AzureToken {
+    
     <#
     .DESCRIPTION
         Generate a device code to be used at https://www.microsoft.com/devicelogin. Once a user has successfully authenticated, you will be presented with a JSON Web Token JWT in the variable $response.
@@ -41,7 +42,7 @@ function Get-AzureToken {
     Param(
         [Parameter(Mandatory=$True)]
         [String[]]
-        [ValidateSet("Outlook","Teams","Graph","Core","Webshell","MSGraph","Custom","Substrate")]
+        [ValidateSet("Outlook","Teams","Graph","Core","MSGraph","DODMSGraph","Custom","Substrate")]
         $Client,
         [Parameter(Mandatory=$False)]
         [String]
@@ -65,7 +66,7 @@ function Get-AzureToken {
             "client_id" = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
             "resource" =  "https://substrate.office.com"
         }
-    }
+    }    
     elseif ($Client -eq "Custom") {
 
         $body=@{
@@ -94,73 +95,129 @@ function Get-AzureToken {
             "resource" =      "https://graph.microsoft.com"  
         }
     }
-    elseif ($Client -eq "Webshell") {
+    elseif ($Client -eq "DODMSGraph") {
         
         $body = @{
-            "client_id" =     "89bee1f7-5e6e-4d8a-9f3d-ecd601259da7"
-            "resource" =      "https://webshell.suite.office.com"  
+            "client_id" =     "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+            "resource" =      "https://dod-graph.microsoft.us"  
         }
-    }
-    
+    }   
     elseif ($Client -eq "Core") {
         
         $body = @{
             "client_id" =     "d3590ed6-52b3-4102-aeff-aad2292ab01c"
             "resource" =      "https://management.core.windows.net"
         }
-    }
-
-    # Login Process
-    $authResponse = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.com/common/oauth2/devicecode?api-version=1.0" -Body $body
-    write-output $authResponse
-    $continue = $true
-    $interval = $authResponse.interval
-    $expires =  $authResponse.expires_in
-    $body=@{
-        "client_id" =  $ClientID
-        "grant_type" = "urn:ietf:params:oauth:grant-type:device_code"
-        "code" =       $authResponse.device_code
-    }
-    while($continue)
-    {
-        Start-Sleep -Seconds $interval
-        $total += $interval
-
-        if($total -gt $expires)
-        {
-            Write-Error "Timeout occurred"
-            return
-        }          
-        # Try to get the response. Will give 40x while pending so we need to try&catch
-        try
-        {
-            $global:response = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.com/Common/oauth2/token?api-version=1.0 " -Body $body -ErrorAction SilentlyContinue
+    }    
+    if ($client -match "DOD") {
+        # DOD Login Process
+        $authResponse = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.us/common/oauth2/devicecode?api-version=1.0" -Body $body
+        write-output $authResponse
+        $continue = $true
+        $interval = $authResponse.interval
+        $expires =  $authResponse.expires_in
+        $body=@{
+            "client_id" =  $ClientID
+            "grant_type" = "urn:ietf:params:oauth:grant-type:device_code"
+            "code" =       $authResponse.device_code
         }
-        catch
+        while($continue)
         {
-            # This is normal flow, always returns 40x unless successful
-            $details=$_.ErrorDetails.Message | ConvertFrom-Json
-            $continue = $details.error -eq "authorization_pending"
-            Write-Output $details.error
+            Start-Sleep -Seconds $interval
+            $total += $interval
 
-            if(!$continue)
+            if($total -gt $expires)
             {
-                # Not pending so this is a real error
-                Write-Error $details.error_description
+                Write-Error "Timeout occurred"
                 return
+            }          
+            # Try to get the response. Will give 40x while pending so we need to try&catch
+            try
+            {
+                $global:response = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.us/Common/oauth2/token?api-version=1.0 " -Body $body -ErrorAction SilentlyContinue
+            }
+            catch
+            {
+                # This is normal flow, always returns 40x unless successful
+                $details=$_.ErrorDetails.Message | ConvertFrom-Json
+                $continue = $details.error -eq "authorization_pending"
+                Write-Output $details.error
+
+                if(!$continue)
+                {
+                    # Not pending so this is a real error
+                    Write-Error $details.error_description
+                    return
+                }
+            }
+
+            # If we got response, all okay!
+            if($response)
+            {
+                write-output $response
+                $jwt = $response.access_token
+                
+                $output = Parse-JWTtoken -token $jwt
+                $global:upn = $output.upn
+                write-output $upn
+                break
             }
         }
+    }
 
-        # If we got response, all okay!
-        if($response)
+    else {
+        # Login Process
+        $authResponse = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.com/common/oauth2/devicecode?api-version=1.0" -Body $body -ErrorAction SilentlyContinue
+        write-output $authResponse
+        $continue = $true
+        $interval = $authResponse.interval
+        $expires =  $authResponse.expires_in
+        $body=@{
+            "client_id" =  $ClientID
+            "grant_type" = "urn:ietf:params:oauth:grant-type:device_code"
+            "code" =       $authResponse.device_code
+        }
+        while($continue)
         {
-            write-output $response
-            $jwt = $response.access_token
-            
-            $output = Parse-JWTtoken -token $jwt
-            $global:upn = $output.upn
-            write-output $upn
-            break
+            Start-Sleep -Seconds $interval
+            $total += $interval
+
+            if($total -gt $expires)
+            {
+                Write-Error "Timeout occurred"
+                return
+            }          
+            # Try to get the response. Will give 40x while pending so we need to try&catch
+            try
+            {
+                $global:response = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.com/Common/oauth2/token?api-version=1.0 " -Body $body -ErrorAction SilentlyContinue
+            }
+            catch
+            {
+                # This is normal flow, always returns 40x unless successful
+                $details=$_.ErrorDetails.Message | ConvertFrom-Json
+                $continue = $details.error -eq "authorization_pending"
+                Write-Output $details.error
+
+                if(!$continue)
+                {
+                    # Not pending so this is a real error
+                    Write-Error $details.error_description
+                    return
+                }
+            }
+
+            # If we got response, all okay!
+            if($response)
+            {
+                write-output $response
+                $jwt = $response.access_token
+                
+                $output = Parse-JWTtoken -token $jwt
+                $global:upn = $output.upn
+                write-output $upn
+                break
+            }
         }
     }
 }
@@ -519,7 +576,43 @@ function RefreshTo-MAMToken {
     $global:MAMToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Body $body
     Write-Output $MamToken
 }
+function RefreshTo-DODMSGraphToken {
+    <#
+    .DESCRIPTION
+        Generate a Microsoft DOD Graph token from a refresh token.
+    .EXAMPLE
+        RefreshTo-DODMSGraphToken -domain myclient.org -refreshToken ey....
+        $DODMSGraphToken.access_token
+    #>
+    [cmdletbinding()]
+    Param([Parameter(Mandatory=$true)]
+    [string]$domain,
+    [Parameter(Mandatory=$false)]
+    [string]$refreshToken = $response.refresh_token,
+    [Parameter(Mandatory=$false)]
+    [string]$ClientID = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+    )
+      
+    $Resource = "https://dod-graph.microsoft.us"
+    $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+    $TenantId = Get-TenantID -domain $domain
+    $authUrl = "https://login.microsoftonline.us/$($TenantId)"
+    $global:refreshToken = $response.refresh_token 
+    
+    $body = @{
+        "resource" = $Resource
+        "client_id" =     $ClientId
+        "grant_type" =    "refresh_token"
+        "refresh_token" = $refreshToken
+        "scope"=         "openid"
+    }
 
+    $global:DODMSGraphToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Body $body
+    Write-Output $DODMSGraphToken
+}
+
+
+# Helper Functions
 function Get-TenantID
 {
     [cmdletbinding()]
