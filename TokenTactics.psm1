@@ -32,7 +32,7 @@ $functions=@(
     "RefreshTo-SubstrateToken"
     "RefreshTo-MSManageToken"
     "RefreshTo-MSTeamsToken"
-    "RefreshTo-ManageOfficeToken"
+    "RefreshTo-OfficeManagementToken"
     "RefreshTo-OutlookToken"
     "RefreshTo-MSGraphToken"
     "RefreshTo-GraphToken"
@@ -41,6 +41,8 @@ $functions=@(
     "RefreshTo-AzureManagementToken"
     "RefreshTo-MAMToken"
     "RefreshTo-DODMSGraphToken"
+    "RefreshTo-O365SuiteUXToken"
+    "Clear-Token"
     # CapBypass.ps1
     "Forge-UserAgent"
     # OutlookEmailAbuse.ps1

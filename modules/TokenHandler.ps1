@@ -10,7 +10,7 @@ function Get-AzureToken {
     Param(
         [Parameter(Mandatory=$True)]
         [String[]]
-        [ValidateSet("Outlook","Teams","Graph","Core","MSGraph","DODMSGraph","Custom","Substrate")]
+        [ValidateSet("Outlook","MSTeams","Graph","AzureCoreManagement","AzureManagement","MSGraph","DODMSGraph","Custom","Substrate")]
         $Client,
         [Parameter(Mandatory=$False)]
         [String]
@@ -64,7 +64,7 @@ function Get-AzureToken {
             "resource" =  $Resource
         }
     }
-    elseif ($Client -eq "Teams") {
+    elseif ($Client -eq "MSTeams") {
         
         $body = @{
             "client_id" =     "d3590ed6-52b3-4102-aeff-aad2292ab01c"
@@ -92,13 +92,20 @@ function Get-AzureToken {
             "resource" =      "https://dod-graph.microsoft.us"  
         }
     }   
-    elseif ($Client -eq "Core") {
+    elseif ($Client -eq "AzureCoreManagement") {
         
         $body = @{
             "client_id" =     "d3590ed6-52b3-4102-aeff-aad2292ab01c"
             "resource" =      "https://management.core.windows.net"
         }
-    }    
+    }
+    elseif ($Client -eq "AzureManagement") {
+        
+        $body = @{
+            "client_id" =     "84070985-06ea-473d-82fe-eb82b4011c9d"
+            "resource" =      "https://management.azure.com"
+        }
+    }     
     if ($client -match "DOD") {
         # DOD Login Process
         $authResponse = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.us/common/oauth2/devicecode?api-version=1.0" -Headers $Headers -Body $body
@@ -124,7 +131,7 @@ function Get-AzureToken {
             # Try to get the response. Will give 40x while pending so we need to try&catch
             try
             {
-                $global:response = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.us/Common/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body -ErrorAction SilentlyContinue
+                $global:response = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.us/Common/oauth2/token?api-version=1.0" -Headers $Headers -Body $body -ErrorAction SilentlyContinue
             }
             catch
             {
@@ -180,7 +187,7 @@ function Get-AzureToken {
             # Try to get the response. Will give 40x while pending so we need to try&catch
             try
             {
-                $global:response = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.com/Common/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body -ErrorAction SilentlyContinue
+                $global:response = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.com/Common/oauth2/token?api-version=1.0" -Headers $Headers -Body $body -ErrorAction SilentlyContinue
             }
             catch
             {
@@ -265,7 +272,7 @@ function RefreshTo-SubstrateToken {
         "scope" = "openid"
     }
 
-    $global:SubstrateToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body
+    $global:SubstrateToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
     Write-Output $SubstrateToken
 }
 function RefreshTo-MSManageToken {
@@ -320,7 +327,7 @@ function RefreshTo-MSManageToken {
         "scope" = "openid"
     }
 
-    $global:MSManageToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body
+    $global:MSManageToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
     Write-Output $MSManageToken
 }
 function RefreshTo-MSTeamsToken {
@@ -375,16 +382,16 @@ function RefreshTo-MSTeamsToken {
         "scope" = "openid"
     }
 
-    $global:MSTeamsToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body
+    $global:MSTeamsToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
     Write-Output $MSTeamsToken
 }
-function RefreshTo-ManageOfficeToken {
+function RefreshTo-OfficeManagementToken {
     <#
     .DESCRIPTION
         Generate a Office Manage token from a refresh token.
     .EXAMPLE
-        RefreshTo-ManageOfficeToken -domain myclient.org -refreshToken ey....
-        $ManageOfficeToken.access_token
+        RefreshTo-OfficeManagementToken -domain myclient.org -refreshToken ey....
+        $OfficeManagement.access_token
     #>
     [cmdletbinding()]
     Param([Parameter(Mandatory=$true)]
@@ -430,7 +437,7 @@ function RefreshTo-ManageOfficeToken {
         "scope"=         "openid"
     }
 
-    $global:OfficeManagementToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body
+    $global:OfficeManagementToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
     Write-Output $OfficeManagementToken
 }
 function RefreshTo-OutlookToken {
@@ -485,7 +492,7 @@ function RefreshTo-OutlookToken {
         "scope"=         "openid"
     }
 
-    $global:OutlookToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body
+    $global:OutlookToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
     Write-Output $OutlookToken
 }
 function RefreshTo-MSGraphToken {
@@ -543,7 +550,7 @@ function RefreshTo-MSGraphToken {
         "scope"=         "openid"
     }
 
-    $global:MSGraphToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body
+    $global:MSGraphToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
     Write-Output $MSGraphToken
 }
 function RefreshTo-GraphToken {
@@ -600,7 +607,7 @@ function RefreshTo-GraphToken {
         "refresh_token" = $refreshToken
         "scope"=         "openid"
     }
-    $global:GraphToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body
+    $global:GraphToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
     Write-Output $GraphToken
 }
 function RefreshTo-OfficeAppsToken {
@@ -715,7 +722,7 @@ function RefreshTo-AzureCoreManagementToken {
         "scope"=         "openid"
     }
 
-    $global:AzureCoreManagementToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body
+    $global:AzureCoreManagementToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
     Write-Output $AzureCoreManagementToken
 }
 function RefreshTo-AzureManagementToken {
@@ -771,7 +778,7 @@ function RefreshTo-AzureManagementToken {
         "scope"=         "openid"
     }
 
-    $global:AzureManagementToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body
+    $global:AzureManagementToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
     Write-Output $AzureManagementToken
 }
 function RefreshTo-MAMToken {
@@ -827,7 +834,7 @@ function RefreshTo-MAMToken {
         "scope"=         "openid"
     }
 
-    $global:MAMToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body
+    $global:MAMToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
     Write-Output $MamToken
 }
 function RefreshTo-DODMSGraphToken {
@@ -885,6 +892,61 @@ function RefreshTo-DODMSGraphToken {
         "scope"=         "openid"
     }
 
-    $global:DODMSGraphToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0 " -Headers $Headers -Body $body
+    $global:DODMSGraphToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
     Write-Output $DODMSGraphToken
+}
+function Clear-Token {
+    <#
+    .DESCRIPTION
+        Clear or "Null" your tokens.
+    .EXAMPLE
+        Clear-Token -Token All
+        Clear-Token -Token Substrate
+    #>
+    [cmdletbinding()]
+    Param([Parameter(Mandatory=$true)]
+    [ValidateSet("All","Response","Outlook","MSTeams","Graph","AzureCoreManagement","OfficeManagement","MSGraph","DODMSGraph","Custom","Substrate")]
+    [string]$Token
+    )
+    if ($Token -eq "All") {
+
+        $global:response = $null
+        $global:OutlookToken = $null
+        $global:MSTeamsToken = $null
+        $global:GraphToken = $null
+        $global:AzureCoreManagementToken = $null
+        $global:OfficeManagementToken = $null
+        $global:MSGraphToken = $null
+        $global:DODMSGraphToken = $null
+        $global:CustomToken = $null
+        $global:SubstrateToken = $null
+
+    }
+    elseif ($Token -eq "Response") {
+        $global:response = $null
+    }
+    elseif ($Token -eq "MSTeams") {
+        $global:MSTeamsToken = $null
+    }
+    elseif ($Token -eq "Graph") {
+        $global:GraphToken = $null
+    }
+    elseif ($Token -eq "AzureCoreManagement") {
+        $global:AzureCoreManagementToken = $null
+    }
+    elseif ($Token -eq "OfficeManagement") {
+        $global:OfficeManagementToken = $null
+    }
+    elseif ($Token -eq "MSGraph") {
+        $global:MSGraphToken = $null
+    }
+    elseif ($Token -eq "DODMSGraph") {
+        $global:DODMSGraphToken = $null
+    }
+    elseif ($Token -eq "Custom") {
+        $global:CustomToken = $null
+    }
+    elseif ($Token -eq "Substrate") {
+        $global:SubstrateToken = $null
+    }
 }

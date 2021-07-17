@@ -1,14 +1,15 @@
 # TokenTactics
-Azure JSON Web Token ("JWT")Token Manipulation Toolset
+Azure JSON Web Token ("JWT") Manipulation Toolset
 
+Azure access tokens allow you to authenticate to certain endpoints as a user who signs in with a device code. Even if they used multi-factor authentication. Once you have a user's access token, it may be possible to access certain apps such as Outlook, SharePoint, OneDrive, MSTeams and more. 
 
-Azure JWT's allow you to authenticate to certain endpoints as the user who signed in with the device code. Even if they used multi-factor authentication. Once you have a user's JWT, it may be possible to access certain apps such as Outlook, SharePoint, OneDrive, MSTeams and more. 
+For instance, if you have a Graph or MSGraph token, you can then connect to Azure and dump users, groups, etc. You could then, depending on conditional access policies, switch to an Azure Core Management token and run [AzureHound](https://github.com/BloodHoundAD/AzureHound). Then, switch to an Outlook token and read/send emails or MS Teams and read/send teams messages!
 
-For instance, if you have a Graph or MSGraph token, you can then connect to Azure and dump users, groups, etc. You could then, depending on conditional access policies, switch to an Azure Core Management token and run [AzureHound](https://github.com/BloodHoundAD/AzureHound). Then, switch to an Outlook token and read/send emails! 
+For more on Azure token types [Microsoft identity platform access tokens](https://docs.microsoft.com/en-us/azure/active-directory/develop/access-tokens)
 
-There are some example requests to endpoints in the resources folder.
+There are some example requests to endpoints in the resources folder. There is also an example phishing template for device code phishing.
 
-You may also use these tokens with [AAD Internals](https://o365blog.com/aadinternals/) as well.
+You may also use these tokens with [AAD Internals](https://o365blog.com/aadinternals/) as well. We strongly recommended to check this amazing tool out.
 
 ## Installation and Usage
 
@@ -35,12 +36,16 @@ Once the user has logged in, you'll be presented with the JWT and it will be sav
 ### Connect
 ```Connect-AzureAD -AadAccessToken $response.access_token -AccountId user@myclient.org```
 
+### Clear tokens
+```Clear-Token -Token All```
+
 ### Commands
 ```powershell
 Get-Command -Module TokenTactics
 
 CommandType     Name                                               Version    Source
 -----------     ----                                               -------    ------
+Function        Clear-Token                                        0.0.1      TokenTactics
 Function        Dump-OWAMailboxViaMSGraphApi                       0.0.1      TokenTactics
 Function        Forge-UserAgent                                    0.0.1      TokenTactics
 Function        Get-AzureToken                                     0.0.1      TokenTactics
@@ -52,11 +57,12 @@ Function        RefreshTo-AzureManagementToken                     0.0.1      To
 Function        RefreshTo-DODMSGraphToken                          0.0.1      TokenTactics
 Function        RefreshTo-GraphToken                               0.0.1      TokenTactics
 Function        RefreshTo-MAMToken                                 0.0.1      TokenTactics
-Function        RefreshTo-ManageOfficeToken                        0.0.1      TokenTactics
 Function        RefreshTo-MSGraphToken                             0.0.1      TokenTactics
 Function        RefreshTo-MSManageToken                            0.0.1      TokenTactics
 Function        RefreshTo-MSTeamsToken                             0.0.1      TokenTactics
+Function        RefreshTo-O365SuiteUXToken                         0.0.1      TokenTactics
 Function        RefreshTo-OfficeAppsToken                          0.0.1      TokenTactics
+Function        RefreshTo-OfficeManagementToken                    0.0.1      TokenTactics
 Function        RefreshTo-OutlookToken                             0.0.1      TokenTactics
 Function        RefreshTo-SubstrateToken                           0.0.1      TokenTactics
 ```
