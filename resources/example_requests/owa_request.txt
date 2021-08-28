@@ -1,3 +1,14 @@
-GET /owa/ HTTP/2
-Host: outlook.office.com
-Authorization: Bearer eyJ
+GET /owa/ HTTP/1.1
+Host: outlook.office365.com
+Authorization: Bearer eyJ0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Referer: https://login.microsoftonline.com/
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: cross-site
+Te: trailers
+Connection: close
