@@ -1,0 +1,3 @@
+GET /owa/ HTTP/2
+Host: outlook.office.com
+Authorization: Bearer eyJ
