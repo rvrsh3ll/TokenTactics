@@ -1,0 +1,24 @@
+Directions: 
+1) Obtain a outlook token
+2) Browse to outlook.office.com/owa
+3) In burp, browese to the target tab, find the folder for the above request. Send this to repeater. 
+4) I erased the cookies header from the request. Added the Authorization: Bearer token. My final request is shown below. The access token has been redacted. 
+
+  GET /owa/ HTTP/2
+  Host: outlook.office.com
+  Authorization: Bearer eyJ0
+  User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101 Firefox/91.0
+  Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+  Accept-Language: en-US,en;q=0.5
+  Accept-Encoding: gzip, deflate
+  Upgrade-Insecure-Requests: 1
+  Sec-Fetch-Dest: empty
+  Sec-Fetch-Mode: same-origin
+  Sec-Fetch-Site: same-origin
+  Te: trailers
+  
+ 5) Send the above request to the target. 
+ 6) Right click The request, select 'Show Response in Browser'
+ 7) Should be able to view the inbox of the user. 
+ 8) Why do you have to perform step 2? I do not know, but in my testing I found that if I skipped this step I would land at the select account page. 
+ 
