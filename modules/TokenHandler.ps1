@@ -23,7 +23,10 @@ function Get-AzureToken {
         [String]$Device,
         [Parameter(Mandatory=$False)]
         [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
-        [String]$Browser
+        [String]$Browser,
+        [Parameter(Mandatory=$False)]
+        [String]
+        $CaptureCode
     )
     if ($Device) {
 		if ($Browser) {
@@ -113,10 +116,18 @@ function Get-AzureToken {
         $continue = $true
         $interval = $authResponse.interval
         $expires =  $authResponse.expires_in
-        $body=@{
-            "client_id" =  $ClientID
-            "grant_type" = "urn:ietf:params:oauth:grant-type:device_code"
-            "code" =       $authResponse.device_code
+        if ($CaptureCode){
+            $body=@{
+                "client_id" =  $ClientID
+                "grant_type" = "urn:ietf:params:oauth:grant-type:device_code"
+                "code" =       $CaptureCode
+            } 
+        } else {
+            $body=@{
+                "client_id" =  $ClientID
+                "grant_type" = "urn:ietf:params:oauth:grant-type:device_code"
+                "code" =       $authResponse.device_code
+            }
         }
         while($continue)
         {
@@ -169,11 +180,21 @@ function Get-AzureToken {
         $continue = $true
         $interval = $authResponse.interval
         $expires =  $authResponse.expires_in
-        $body=@{
-            "client_id" =  $ClientID
-            "grant_type" = "urn:ietf:params:oauth:grant-type:device_code"
-            "code" =       $authResponse.device_code
+        if ($CaptureCode){
+            $body=@{
+                "client_id" =  $ClientID
+                "grant_type" = "urn:ietf:params:oauth:grant-type:device_code"
+                "code" =       $CaptureCode
+            } 
         }
+        else {
+            $body=@{
+                "client_id" =  $ClientID
+                "grant_type" = "urn:ietf:params:oauth:grant-type:device_code"
+                "code" =       $authResponse.device_code
+            }
+        }
+        
         while($continue)
         {
             Start-Sleep -Seconds $interval
