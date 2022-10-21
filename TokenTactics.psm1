@@ -42,6 +42,7 @@ $functions=@(
     "RefreshTo-MAMToken"
     "RefreshTo-DODMSGraphToken"
     "RefreshTo-O365SuiteUXToken"
+    "RefreshTo-YammerToken"
     "Clear-Token"
     # CapBypass.ps1
     "Forge-UserAgent"

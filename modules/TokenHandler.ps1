@@ -10,7 +10,7 @@ function Get-AzureToken {
     Param(
         [Parameter(Mandatory=$True)]
         [String[]]
-        [ValidateSet("Outlook","MSTeams","Graph","AzureCoreManagement","AzureManagement","MSGraph","DODMSGraph","Custom","Substrate")]
+        [ValidateSet("Yammer","Outlook","MSTeams","Graph","AzureCoreManagement","AzureManagement","MSGraph","DODMSGraph","Custom","Substrate")]
         $Client,
         [Parameter(Mandatory=$False)]
         [String]
@@ -59,7 +59,14 @@ function Get-AzureToken {
             "client_id" = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
             "resource" =  "https://substrate.office.com"
         }
-    }    
+    }
+    elseif ($Client -eq "Yammer") {
+
+        $body=@{
+            "client_id" = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+            "resource" =  "https://www.yammer.com"
+        }
+    }        
     elseif ($Client -eq "Custom") {
 
         $body=@{
@@ -295,6 +302,62 @@ function RefreshTo-SubstrateToken {
 
     $global:SubstrateToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
     Write-Output $SubstrateToken
+}
+function RefreshTo-YammerToken {
+    <#
+    .DESCRIPTION
+        Generate a Substrate token from a refresh token.
+    .EXAMPLE
+        RefreshTo-SubstrateToken -domain myclient.org -refreshToken ey....
+        $SubstrateToken.access_token
+    #>
+
+    [cmdletbinding()]
+    Param([Parameter(Mandatory=$true)]
+    [string]$domain,
+    [Parameter(Mandatory=$false)]
+    [string]$refreshToken = $response.refresh_token,
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+    [String]$Device,
+    [Parameter(Mandatory=$False)]
+    [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+    [String]$Browser
+    )
+    if ($Device) {
+		if ($Browser) {
+			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+		}
+		else {
+			$UserAgent = Forge-UserAgent -Device $Device
+		}
+	}
+	else {
+	   if ($Browser) {
+			$UserAgent = Forge-UserAgent -Browser $Browser 
+	   } 
+	   else {
+			$UserAgent = Forge-UserAgent
+	   }
+	}    
+    $Headers=@{}
+    $Headers["User-Agent"] = $UserAgent
+    $Resource = "https://www.yammer.com"
+    $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+    $TenantId = Get-TenantID -domain $domain
+    $authUrl = "https://login.microsoftonline.com/$($TenantId)"
+    
+    Write-Output $refreshToken
+    $body = @{
+        "resource" =      $Resource
+        "client_id" =     $ClientId
+        "grant_type" =    "refresh_token"
+        "refresh_token" = $refreshToken
+        "scope" = "openid"
+    }
+
+    $global:YammerToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
+    Write-Output $YammerToken
 }
 function RefreshTo-MSManageToken {
     <#
