@@ -26,7 +26,10 @@ function Get-AzureToken {
         [String]$Browser,
         [Parameter(Mandatory=$False)]
         [String]
-        $CaptureCode
+        $CaptureCode,
+        [Parameter(Mandatory=$False)]
+        [String]
+        $LogFile = "TokenLog.log"
     )
     if ($Device) {
 		if ($Browser) {
@@ -175,6 +178,9 @@ function Get-AzureToken {
                 $output = Parse-JWTtoken -token $jwt
                 $global:upn = $output.upn
                 write-output $upn
+                "------- Tokens -------" |Out-File -Append $LogFile
+                $response.access_token |Out-File -Append $LogFile
+                $response.refresh_token |Out-File -Append $LogFile
                 break
             }
         }
@@ -241,6 +247,9 @@ function Get-AzureToken {
                 $output = Parse-JWTtoken -token $jwt
                 $global:upn = $output.upn
                 write-output $upn
+                "------- Tokens -------" |Out-File -Append $LogFile
+                $response.access_token |Out-File -Append $LogFile
+                $response.refresh_token |Out-File -Append $LogFile
                 break
             }
         }

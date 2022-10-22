@@ -3,7 +3,7 @@ Azure JSON Web Token ("JWT") Manipulation Toolset
 
 Azure access tokens allow you to authenticate to certain endpoints as a user who signs in with a device code. Even if they used multi-factor authentication. Once you have a user's access token, it may be possible to access certain apps such as Outlook, SharePoint, OneDrive, MSTeams and more. 
 
-For instance, if you have a Graph or MSGraph token, you can then connect to Azure and dump users, groups, etc. You could then, depending on conditional access policies, switch to an Azure Core Management token and run [AzureHound](https://github.com/BloodHoundAD/AzureHound). Then, switch to an Outlook token and read/send emails or MS Teams and read/send teams messages!
+For instance, if you have a Graph or MSGraph token, you can then connect to Azure and dump users, groups, etc. You could then, depending on conditional access policies, switch to an Azure Core Management token and run [AzureHound](https://github.com/BloodHoundAD/AzureHound). Then, switch to an Outlook token and read/send emails or MS Teams and read/send messages!
 
 For more on Azure token types [Microsoft identity platform access tokens](https://docs.microsoft.com/en-us/azure/active-directory/develop/access-tokens)
 
@@ -22,7 +22,7 @@ You may also use these tokens with [AAD Internals](https://o365blog.com/aadinter
 ### Generate Device Code
 
 ```Get-AzureToken -Client MSGraph```
-Once the user has logged in, you'll be presented with the JWT and it will be saved in the $response variable. To access the access token use ```$response.access_token``` from your PowerShell window to display the token. You may also display the refresh token with ```$response.refresh_token```. Hint: You'll want the refresh token to keep refreshing to new tokens!
+Once the user has logged in, you'll be presented with the JWT and it will be saved in the $response variable. To access the access token use ```$response.access_token``` from your PowerShell window to display the token. You may also display the refresh token with ```$response.refresh_token```. Hint: You'll want the refresh token to keep refreshing to new access tokens! By default, Get-AzureToken results are logged to TokenLog.log.
 
 #### DOD/Mil Device Code
 ```Get-AzureToken -Client DODMSGraph```
@@ -65,6 +65,7 @@ Function        RefreshTo-OfficeAppsToken                          0.0.1      To
 Function        RefreshTo-OfficeManagementToken                    0.0.1      TokenTactics
 Function        RefreshTo-OutlookToken                             0.0.1      TokenTactics
 Function        RefreshTo-SubstrateToken                           0.0.1      TokenTactics
+Function        RefreshTo-YammerToken                           0.0.1      TokenTactics
 ```
 
 ## Authors and contributors
