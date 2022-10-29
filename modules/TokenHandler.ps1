@@ -17,7 +17,7 @@ function Get-AzureToken {
         $ClientID = "d3590ed6-52b3-4102-aeff-aad2292ab01c",    
         [Parameter(Mandatory=$False)]
         [String]
-        $Resource = "https://graph.microsoft.com",
+        $Resource = "https://graph.microsoft.com/",
         [Parameter(Mandatory=$False)]
         [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
         [String]$Device,
@@ -53,21 +53,21 @@ function Get-AzureToken {
 
         $body=@{
             "client_id" = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
-            "resource" =  "https://outlook.office365.com"
+            "resource" =  "https://outlook.office365.com/"
         }
     }
     elseif ($Client -eq "Substrate") {
 
         $body=@{
             "client_id" = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
-            "resource" =  "https://substrate.office.com"
+            "resource" =  "https://substrate.office.com/"
         }
     }
     elseif ($Client -eq "Yammer") {
 
         $body=@{
             "client_id" = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
-            "resource" =  "https://www.yammer.com"
+            "resource" =  "https://www.yammer.com/"
         }
     }        
     elseif ($Client -eq "Custom") {
@@ -81,21 +81,21 @@ function Get-AzureToken {
         
         $body = @{
             "client_id" =     "d3590ed6-52b3-4102-aeff-aad2292ab01c"
-            "resource" =      "https://api.spaces.skype.com"   
+            "resource" =      "https://api.spaces.skype.com/"   
         }
     }
     elseif ($Client -eq "Graph") {
         
         $body = @{
             "client_id" =     "d3590ed6-52b3-4102-aeff-aad2292ab01c"
-            "resource" =      "https://graph.windows.net"  
+            "resource" =      "https://graph.windows.net/"  
         }
     }
     elseif ($Client -eq "MSGraph") {
         
         $body = @{
             "client_id" =     "d3590ed6-52b3-4102-aeff-aad2292ab01c"
-            "resource" =      "https://graph.microsoft.com"  
+            "resource" =      "https://graph.microsoft.com/"  
         }
     }
     elseif ($Client -eq "DODMSGraph") {
@@ -109,14 +109,14 @@ function Get-AzureToken {
         
         $body = @{
             "client_id" =     "d3590ed6-52b3-4102-aeff-aad2292ab01c"
-            "resource" =      "https://management.core.windows.net"
+            "resource" =      "https://management.core.windows.net/"
         }
     }
     elseif ($Client -eq "AzureManagement") {
         
         $body = @{
             "client_id" =     "84070985-06ea-473d-82fe-eb82b4011c9d"
-            "resource" =      "https://management.azure.com"
+            "resource" =      "https://management.azure.com/"
         }
     }     
     if ($client -match "DOD") {
@@ -295,7 +295,7 @@ function RefreshTo-SubstrateToken {
 	}    
     $Headers=@{}
     $Headers["User-Agent"] = $UserAgent
-    $Resource = "https://substrate.office.com"
+    $Resource = "https://substrate.office.com/"
     $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
     $authUrl = "https://login.microsoftonline.com/$($TenantId)"
@@ -351,7 +351,7 @@ function RefreshTo-YammerToken {
 	}    
     $Headers=@{}
     $Headers["User-Agent"] = $UserAgent
-    $Resource = "https://www.yammer.com"
+    $Resource = "https://www.yammer.com/"
     $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
     $authUrl = "https://login.microsoftonline.com/$($TenantId)"
@@ -406,7 +406,7 @@ function RefreshTo-MSManageToken {
 	}    
     $Headers=@{}
     $Headers["User-Agent"] = $UserAgent
-    $Resource = "https://enrollment.manage.microsoft.com"
+    $Resource = "https://enrollment.manage.microsoft.com/"
     $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
     $authUrl = "https://login.microsoftonline.com/$($TenantId)"
@@ -461,7 +461,7 @@ function RefreshTo-MSTeamsToken {
 	}    
     $Headers=@{}
     $Headers["User-Agent"] = $UserAgent
-    $Resource = "https://api.spaces.skype.com"
+    $Resource = "https://api.spaces.skype.com/"
     $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
     $authUrl = "https://login.microsoftonline.com/$($TenantId)"
@@ -516,7 +516,7 @@ function RefreshTo-OfficeManagementToken {
 	}    
     $Headers=@{}
     $Headers["User-Agent"] = $UserAgent
-    $Resource = "https://manage.office.com"
+    $Resource = "https://manage.office.com/"
     $ClientId = "00b41c95-dab0-4487-9791-b9d2c32c80f2"
     $TenantId = Get-TenantID -domain $domain
     $authUrl = "https://login.microsoftonline.com/$($TenantId)"
@@ -571,7 +571,7 @@ function RefreshTo-OutlookToken {
 	}    
     $Headers=@{}
     $Headers["User-Agent"] = $UserAgent
-    $Resource = "https://outlook.office365.com"
+    $Resource = "https://outlook.office365.com/"
     $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
     $authUrl = "https://login.microsoftonline.com/$($TenantId)"
@@ -629,7 +629,7 @@ function RefreshTo-MSGraphToken {
     $Headers=@{}
     $Headers["User-Agent"] = $UserAgent
       
-    $Resource = "https://graph.microsoft.com"
+    $Resource = "https://graph.microsoft.com/"
     $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
     $authUrl = "https://login.microsoftonline.com/$($TenantId)"
@@ -687,7 +687,7 @@ function RefreshTo-GraphToken {
 	}    
     $Headers=@{}
     $Headers["User-Agent"] = $UserAgent
-    $Resource = "https://graph.windows.net"
+    $Resource = "https://graph.windows.net/"
     $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
     $authUrl = "https://login.microsoftonline.com/$($TenantId)"
@@ -745,7 +745,7 @@ function RefreshTo-OfficeAppsToken {
     $Headers=@{}
     $Headers["User-Agent"] = $UserAgent
 
-    $Resource = "https://officeapps.live.com"
+    $Resource = "https://officeapps.live.com/"
     $ClientId = "ab9b8c07-8f02-4f72-87fa-80105867a763"
     $TenantId = Get-TenantID -domain $domain
     $authUrl = "https://login.microsoftonline.com/$($TenantId)"
@@ -801,7 +801,7 @@ function RefreshTo-AzureCoreManagementToken {
 	}    
     $Headers=@{}
     $Headers["User-Agent"] = $UserAgent
-    $Resource = "https://management.core.windows.net"
+    $Resource = "https://management.core.windows.net/"
     $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
     $authUrl = "https://login.microsoftonline.com/$($TenantId)"
@@ -857,7 +857,7 @@ function RefreshTo-AzureManagementToken {
 	}    
     $Headers=@{}
     $Headers["User-Agent"] = $UserAgent
-    $Resource = "https://management.azure.com"
+    $Resource = "https://management.azure.com/"
     $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
     $authUrl = "https://login.microsoftonline.com/$($TenantId)"
@@ -913,7 +913,7 @@ function RefreshTo-MAMToken {
 	}    
     $Headers=@{}
     $Headers["User-Agent"] = $UserAgent
-    $Resource = "https://intunemam.microsoftonline.com"
+    $Resource = "https://intunemam.microsoftonline.com/"
     $ClientId = "6c7e8096-f593-4d72-807f-a5f86dcc9c77"
     $TenantId = Get-TenantID -domain $domain
     $authUrl = "https://login.microsoftonline.com/$($TenantId)"
