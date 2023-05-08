@@ -1,0 +1,18 @@
+POST /owa/ HTTP/2
+
+Host: outlook.office.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:106.0) Gecko/20100101 Firefox/106.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 2703
+Referer: https://login.microsoftonline.com/
+Origin: https://login.microsoftonline.com
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: cross-site
+Te: trailers
+
+code=0.A&id_token=ey
