@@ -3,7 +3,7 @@
 RootModule = 'TokenTactics.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.1'
+ModuleVersion = '0.0.2'
 
 # ID used to uniquely identify this module
 GUID = '1fd32d8d-69a8-4778-b5b7-7738f81f27f4'

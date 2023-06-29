@@ -25,30 +25,30 @@ foreach ($script in $scripts) {
 # Export functions
 $functions=@(
     # helpers.ps1
-    "Parse-JWTtoken"
-    "Get-TenantID"
+    "Invoke-ParseJWTtoken"
+    "Invoke-GetTenantID"
     # TokenHandler.ps1
     "Get-AzureToken"
-    "RefreshTo-SubstrateToken"
-    "RefreshTo-MSManageToken"
-    "RefreshTo-MSTeamsToken"
-    "RefreshTo-OfficeManagementToken"
-    "RefreshTo-OutlookToken"
-    "RefreshTo-MSGraphToken"
-    "RefreshTo-GraphToken"
-    "RefreshTo-OfficeAppsToken"
-    "RefreshTo-AzureCoreManagementToken"
-    "RefreshTo-AzureManagementToken"
-    "RefreshTo-MAMToken"
-    "RefreshTo-DODMSGraphToken"
-    "RefreshTo-O365SuiteUXToken"
-    "RefreshTo-YammerToken"
-    "Clear-Token"
+    "Invoke-RefreshToSubstrateToken"
+    "Invoke-RefreshToMSManageToken"
+    "Invoke-RefreshToMSTeamsToken"
+    "Invoke-RefreshToOfficeManagementToken"
+    "Invoke-RefreshToOutlookToken"
+    "Invoke-RefreshToMSGraphToken"
+    "Invoke-RefreshToGraphToken"
+    "Invoke-RefreshToOfficeAppsToken"
+    "Invoke-RefreshToAzureCoreManagementToken"
+    "Invoke-RefreshToAzureManagementToken"
+    "Invoke-RefreshToMAMToken"
+    "Invoke-RefreshToDODMSGraphToken"
+    "Invoke-RefreshToO365SuiteUXToken"
+    "Invoke-RefreshToYammerToken"
+    "Invoke-ClearToken"
     # CapBypass.ps1
-    "Forge-UserAgent"
+    "Invoke-ForgeUserAgent"
     # OutlookEmailAbuse.ps1
-    "Open-OWAMailboxInBrowser"
-    "Dump-OWAMailboxViaMSGraphApi"
+    "Invoke-OpenOWAMailboxInBrowser"
+    "Invoke-DumpOWAMailboxViaMSGraphApi"
 )
 $c = 0
 foreach($function in $functions)

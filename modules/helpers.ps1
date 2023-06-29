@@ -15,12 +15,12 @@ function Get-TenantID
 }
 
 
-function Parse-JWTtoken {
+function Invoke-ParseJWTtoken {
     <#
     .DESCRIPTION
         Parse JWTtoken code from https://www.michev.info/Blog/Post/2140/decode-jwt-access-and-id-tokens-via-powershell
     .EXAMPLE
-        Parse-JWTtoken -Token ey....
+        Invoke-ParseJWTtoken -Token ey....
     #>
     [cmdletbinding()]
     param([Parameter(Mandatory=$true)][string]$token)

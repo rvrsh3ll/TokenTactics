@@ -33,18 +33,18 @@ function Get-AzureToken {
     )
     if ($Device) {
 		if ($Browser) {
-			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
 		}
 		else {
-			$UserAgent = Forge-UserAgent -Device $Device
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device
 		}
 	}
 	else {
 	   if ($Browser) {
-			$UserAgent = Forge-UserAgent -Browser $Browser 
+			$UserAgent = Invoke-ForgeUserAgent -Browser $Browser 
 	   } 
 	   else {
-			$UserAgent = Forge-UserAgent
+			$UserAgent = Invoke-ForgeUserAgent
 	   }
 	}    
     $Headers=@{}
@@ -175,7 +175,7 @@ function Get-AzureToken {
                 write-output $response
                 $jwt = $response.access_token
                 
-                $output = Parse-JWTtoken -token $jwt
+                $output = Invoke-ParseJWTtoken -token $jwt
                 $global:upn = $output.upn
                 write-output $upn
                 "------- Tokens -------" |Out-File -Append $LogFile
@@ -244,7 +244,7 @@ function Get-AzureToken {
                 write-output $response
                 $jwt = $response.access_token
                 
-                $output = Parse-JWTtoken -token $jwt
+                $output = Invoke-ParseJWTtoken -token $jwt
                 $global:upn = $output.upn
                 write-output $upn
                 "------- Tokens -------" |Out-File -Append $LogFile
@@ -256,12 +256,12 @@ function Get-AzureToken {
     }
 }
 # Refresh Token Functions
-function RefreshTo-SubstrateToken {
+function Invoke-RefreshToSubstrateToken {
     <#
     .DESCRIPTION
         Generate a Substrate token from a refresh token.
     .EXAMPLE
-        RefreshTo-SubstrateToken -domain myclient.org -refreshToken ey....
+        Invoke-RefreshToSubstrateToken -domain myclient.org -refreshToken ey....
         $SubstrateToken.access_token
     #>
 
@@ -271,6 +271,8 @@ function RefreshTo-SubstrateToken {
     [Parameter(Mandatory=$false)]
     [string]$refreshToken = $response.refresh_token,
     [Parameter(Mandatory=$False)]
+    [String]$ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
+    [Parameter(Mandatory=$False)]
     [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
     [String]$Device,
     [Parameter(Mandatory=$False)]
@@ -279,24 +281,23 @@ function RefreshTo-SubstrateToken {
     )
     if ($Device) {
 		if ($Browser) {
-			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
 		}
 		else {
-			$UserAgent = Forge-UserAgent -Device $Device
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device
 		}
 	}
 	else {
 	   if ($Browser) {
-			$UserAgent = Forge-UserAgent -Browser $Browser 
+			$UserAgent = Invoke-ForgeUserAgent -Browser $Browser 
 	   } 
 	   else {
-			$UserAgent = Forge-UserAgent
+			$UserAgent = Invoke-ForgeUserAgent
 	   }
 	}    
     $Headers=@{}
     $Headers["User-Agent"] = $UserAgent
     $Resource = "https://substrate.office.com/"
-    $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
     $authUrl = "https://login.microsoftonline.com/$($TenantId)"
     
@@ -312,12 +313,12 @@ function RefreshTo-SubstrateToken {
     $global:SubstrateToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
     Write-Output $SubstrateToken
 }
-function RefreshTo-YammerToken {
+function Invoke-RefreshToYammerToken {
     <#
     .DESCRIPTION
         Generate a Substrate token from a refresh token.
     .EXAMPLE
-        RefreshTo-SubstrateToken -domain myclient.org -refreshToken ey....
+        Invoke-RefreshToSubstrateToken -domain myclient.org -refreshToken ey....
         $SubstrateToken.access_token
     #>
 
@@ -327,6 +328,8 @@ function RefreshTo-YammerToken {
     [Parameter(Mandatory=$false)]
     [string]$refreshToken = $response.refresh_token,
     [Parameter(Mandatory=$False)]
+    [String]$ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
+    [Parameter(Mandatory=$False)]
     [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
     [String]$Device,
     [Parameter(Mandatory=$False)]
@@ -335,24 +338,23 @@ function RefreshTo-YammerToken {
     )
     if ($Device) {
 		if ($Browser) {
-			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
 		}
 		else {
-			$UserAgent = Forge-UserAgent -Device $Device
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device
 		}
 	}
 	else {
 	   if ($Browser) {
-			$UserAgent = Forge-UserAgent -Browser $Browser 
+			$UserAgent = Invoke-ForgeUserAgent -Browser $Browser 
 	   } 
 	   else {
-			$UserAgent = Forge-UserAgent
+			$UserAgent = Invoke-ForgeUserAgent
 	   }
 	}    
     $Headers=@{}
     $Headers["User-Agent"] = $UserAgent
     $Resource = "https://www.yammer.com/"
-    $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
     $authUrl = "https://login.microsoftonline.com/$($TenantId)"
     
@@ -368,12 +370,12 @@ function RefreshTo-YammerToken {
     $global:YammerToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
     Write-Output $YammerToken
 }
-function RefreshTo-MSManageToken {
+function Invoke-RefreshToMSManageToken {
     <#
     .DESCRIPTION
         Generate a manage token from a refresh token.
     .EXAMPLE
-        RefreshTo-MSManage -domain myclient.org -refreshToken ey....
+        Invoke-RefreshToMSManage -domain myclient.org -refreshToken ey....
         $MSManageToken.access_token
     #>
     [cmdletbinding()]
@@ -381,6 +383,8 @@ function RefreshTo-MSManageToken {
     [string]$domain,
     [Parameter(Mandatory=$false)]
     [string]$refreshToken = $response.refresh_token,
+    [Parameter(Mandatory=$False)]
+    [String]$ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
     [Parameter(Mandatory=$False)]
     [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
     [String]$Device,
@@ -390,24 +394,23 @@ function RefreshTo-MSManageToken {
     )
     if ($Device) {
 		if ($Browser) {
-			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
 		}
 		else {
-			$UserAgent = Forge-UserAgent -Device $Device
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device
 		}
 	}
 	else {
 	   if ($Browser) {
-			$UserAgent = Forge-UserAgent -Browser $Browser 
+			$UserAgent = Invoke-ForgeUserAgent -Browser $Browser 
 	   } 
 	   else {
-			$UserAgent = Forge-UserAgent
+			$UserAgent = Invoke-ForgeUserAgent
 	   }
 	}    
     $Headers=@{}
     $Headers["User-Agent"] = $UserAgent
     $Resource = "https://enrollment.manage.microsoft.com/"
-    $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
     $authUrl = "https://login.microsoftonline.com/$($TenantId)"
     
@@ -423,12 +426,12 @@ function RefreshTo-MSManageToken {
     $global:MSManageToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
     Write-Output $MSManageToken
 }
-function RefreshTo-MSTeamsToken {
+function Invoke-RefreshToMSTeamsToken {
     <#
     .DESCRIPTION
         Generate a Microsoft Teams token from a refresh token.
     .EXAMPLE
-        RefreshTo-MSTeamsToken -domain myclient.org -refreshToken ey....
+        Invoke-RefreshToMSTeamsToken -domain myclient.org -refreshToken ey....
         $MSTeamsToken.access_token
     #>
     [cmdletbinding()]
@@ -436,6 +439,8 @@ function RefreshTo-MSTeamsToken {
     [string]$domain,
     [Parameter(Mandatory=$false)]
     [string]$refreshToken = $response.refresh_token,
+    [Parameter(Mandatory=$False)]
+    [String]$ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
     [Parameter(Mandatory=$False)]
     [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
     [String]$Device,
@@ -445,24 +450,23 @@ function RefreshTo-MSTeamsToken {
     )
     if ($Device) {
 		if ($Browser) {
-			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
 		}
 		else {
-			$UserAgent = Forge-UserAgent -Device $Device
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device
 		}
 	}
 	else {
 	   if ($Browser) {
-			$UserAgent = Forge-UserAgent -Browser $Browser 
+			$UserAgent = Invoke-ForgeUserAgent -Browser $Browser 
 	   } 
 	   else {
-			$UserAgent = Forge-UserAgent
+			$UserAgent = Invoke-ForgeUserAgent
 	   }
 	}    
     $Headers=@{}
     $Headers["User-Agent"] = $UserAgent
     $Resource = "https://api.spaces.skype.com/"
-    $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
     $authUrl = "https://login.microsoftonline.com/$($TenantId)"
     
@@ -478,12 +482,12 @@ function RefreshTo-MSTeamsToken {
     $global:MSTeamsToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
     Write-Output $MSTeamsToken
 }
-function RefreshTo-OfficeManagementToken {
+function Invoke-RefreshToOfficeManagementToken {
     <#
     .DESCRIPTION
         Generate a Office Manage token from a refresh token.
     .EXAMPLE
-        RefreshTo-OfficeManagementToken -domain myclient.org -refreshToken ey....
+        Invoke-RefreshToOfficeManagementToken -domain myclient.org -refreshToken ey....
         $OfficeManagement.access_token
     #>
     [cmdletbinding()]
@@ -491,6 +495,8 @@ function RefreshTo-OfficeManagementToken {
     [string]$domain,
     [Parameter(Mandatory=$false)]
     [string]$refreshToken = $response.refresh_token,
+    [Parameter(Mandatory=$False)]
+    [String]$ClientId = "00b41c95-dab0-4487-9791-b9d2c32c80f2",
     [Parameter(Mandatory=$False)]
     [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
     [String]$Device,
@@ -500,24 +506,23 @@ function RefreshTo-OfficeManagementToken {
     )
     if ($Device) {
 		if ($Browser) {
-			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
 		}
 		else {
-			$UserAgent = Forge-UserAgent -Device $Device
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device
 		}
 	}
 	else {
 	   if ($Browser) {
-			$UserAgent = Forge-UserAgent -Browser $Browser 
+			$UserAgent = Invoke-ForgeUserAgent -Browser $Browser 
 	   } 
 	   else {
-			$UserAgent = Forge-UserAgent
+			$UserAgent = Invoke-ForgeUserAgent
 	   }
 	}    
     $Headers=@{}
     $Headers["User-Agent"] = $UserAgent
     $Resource = "https://manage.office.com/"
-    $ClientId = "00b41c95-dab0-4487-9791-b9d2c32c80f2"
     $TenantId = Get-TenantID -domain $domain
     $authUrl = "https://login.microsoftonline.com/$($TenantId)"
     $global:refreshToken = $response.refresh_token 
@@ -533,12 +538,12 @@ function RefreshTo-OfficeManagementToken {
     $global:OfficeManagementToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
     Write-Output $OfficeManagementToken
 }
-function RefreshTo-OutlookToken {
+function Invoke-RefreshToOutlookToken {
     <#
     .DESCRIPTION
         Generate a Microsoft Outlook token from a refresh token.
     .EXAMPLE
-        RefreshTo-OutlookToken -domain myclient.org -refreshToken ey....
+        Invoke-RefreshToOutlookToken -domain myclient.org -refreshToken ey....
         $OutlookToken.access_token
     #>
     [cmdletbinding()]
@@ -546,6 +551,8 @@ function RefreshTo-OutlookToken {
     [string]$domain,
     [Parameter(Mandatory=$false)]
     [string]$refreshToken = $response.refresh_token,
+    [Parameter(Mandatory=$False)]
+    [String]$ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
     [Parameter(Mandatory=$False)]
     [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
     [String]$Device,
@@ -555,24 +562,23 @@ function RefreshTo-OutlookToken {
     )
     if ($Device) {
 		if ($Browser) {
-			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
 		}
 		else {
-			$UserAgent = Forge-UserAgent -Device $Device
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device
 		}
 	}
 	else {
 	   if ($Browser) {
-			$UserAgent = Forge-UserAgent -Browser $Browser 
+			$UserAgent = Invoke-ForgeUserAgent -Browser $Browser 
 	   } 
 	   else {
-			$UserAgent = Forge-UserAgent
+			$UserAgent = Invoke-ForgeUserAgent
 	   }
 	}    
     $Headers=@{}
     $Headers["User-Agent"] = $UserAgent
     $Resource = "https://outlook.office365.com/"
-    $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
     $authUrl = "https://login.microsoftonline.com/$($TenantId)"
     $global:refreshToken = $response.refresh_token 
@@ -588,12 +594,12 @@ function RefreshTo-OutlookToken {
     $global:OutlookToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
     Write-Output $OutlookToken
 }
-function RefreshTo-MSGraphToken {
+function Invoke-RefreshToMSGraphToken {
     <#
     .DESCRIPTION
         Generate a Microsoft Graph token from a refresh token.
     .EXAMPLE
-        RefreshTo-MSGraphToken -domain myclient.org -refreshToken ey....
+        Invoke-RefreshToMSGraphToken -domain myclient.org -refreshToken ey....
         $MSGraphToken.access_token
     #>
     [cmdletbinding()]
@@ -601,8 +607,8 @@ function RefreshTo-MSGraphToken {
     [string]$domain,
     [Parameter(Mandatory=$false)]
     [string]$refreshToken = $response.refresh_token,
-    [Parameter(Mandatory=$false)]
-    [string]$ClientID = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
+    [Parameter(Mandatory=$False)]
+    [String]$ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
     [Parameter(Mandatory=$False)]
     [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
     [String]$Device,
@@ -612,25 +618,24 @@ function RefreshTo-MSGraphToken {
     )
     if ($Device) {
 		if ($Browser) {
-			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
 		}
 		else {
-			$UserAgent = Forge-UserAgent -Device $Device
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device
 		}
 	}
 	else {
 	   if ($Browser) {
-			$UserAgent = Forge-UserAgent -Browser $Browser 
+			$UserAgent = Invoke-ForgeUserAgent -Browser $Browser 
 	   } 
 	   else {
-			$UserAgent = Forge-UserAgent
+			$UserAgent = Invoke-ForgeUserAgent
 	   }
 	}    
     $Headers=@{}
     $Headers["User-Agent"] = $UserAgent
       
     $Resource = "https://graph.microsoft.com/"
-    $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
     $authUrl = "https://login.microsoftonline.com/$($TenantId)"
     $global:refreshToken = $response.refresh_token 
@@ -646,12 +651,12 @@ function RefreshTo-MSGraphToken {
     $global:MSGraphToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
     Write-Output $MSGraphToken
 }
-function RefreshTo-GraphToken {
+function Invoke-RefreshToGraphToken {
     <#
     .DESCRIPTION
         Generate a windows graph token from a refresh token.
     .EXAMPLE
-        RefreshTo-GraphToken -domain myclient.org -refreshToken ey....
+        Invoke-RefreshToGraphToken -domain myclient.org -refreshToken ey....
         $GraphToken.access_token
     #>
     [cmdletbinding()]
@@ -660,8 +665,8 @@ function RefreshTo-GraphToken {
         [string]$domain,
         [Parameter(Mandatory=$false)]
         [string]$refreshToken = $response.refresh_token,
-        [Parameter(Mandatory=$false)]
-        [string]$ClientID = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
+        [Parameter(Mandatory=$False)]
+        [String]$ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
         [Parameter(Mandatory=$False)]
         [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
         [String]$Device,
@@ -671,24 +676,23 @@ function RefreshTo-GraphToken {
     )
     if ($Device) {
 		if ($Browser) {
-			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
 		}
 		else {
-			$UserAgent = Forge-UserAgent -Device $Device
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device
 		}
 	}
 	else {
 	   if ($Browser) {
-			$UserAgent = Forge-UserAgent -Browser $Browser 
+			$UserAgent = Invoke-ForgeUserAgent -Browser $Browser 
 	   } 
 	   else {
-			$UserAgent = Forge-UserAgent
+			$UserAgent = Invoke-ForgeUserAgent
 	   }
 	}    
     $Headers=@{}
     $Headers["User-Agent"] = $UserAgent
     $Resource = "https://graph.windows.net/"
-    $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
     $authUrl = "https://login.microsoftonline.com/$($TenantId)"
 
@@ -703,12 +707,12 @@ function RefreshTo-GraphToken {
     $global:GraphToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
     Write-Output $GraphToken
 }
-function RefreshTo-OfficeAppsToken {
+function Invoke-RefreshToOfficeAppsToken {
     <#
     .DESCRIPTION
         Generate a Microsoft Office Apps token from a refresh token.
     .EXAMPLE
-        RefreshTo-OfficeAppsToken -domain myclient.org -refreshToken ey....
+        Invoke-RefreshToOfficeAppsToken -domain myclient.org -refreshToken ey....
         $OfficeAppsToken.access_token
     #>
     [cmdletbinding()]
@@ -728,25 +732,24 @@ function RefreshTo-OfficeAppsToken {
     )
     if ($Device) {
 		if ($Browser) {
-			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
 		}
 		else {
-			$UserAgent = Forge-UserAgent -Device $Device
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device
 		}
 	}
 	else {
 	   if ($Browser) {
-			$UserAgent = Forge-UserAgent -Browser $Browser 
+			$UserAgent = Invoke-ForgeUserAgent -Browser $Browser 
 	   } 
 	   else {
-			$UserAgent = Forge-UserAgent
+			$UserAgent = Invoke-ForgeUserAgent
 	   }
 	}    
     $Headers=@{}
     $Headers["User-Agent"] = $UserAgent
 
     $Resource = "https://officeapps.live.com/"
-    $ClientId = "ab9b8c07-8f02-4f72-87fa-80105867a763"
     $TenantId = Get-TenantID -domain $domain
     $authUrl = "https://login.microsoftonline.com/$($TenantId)"
     $global:refreshToken = $response.refresh_token
@@ -762,12 +765,12 @@ function RefreshTo-OfficeAppsToken {
     $global:OfficeAppsToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body2
     Write-Output $OfficeAppsToken
 }
-function RefreshTo-AzureCoreManagementToken {
+function Invoke-RefreshToAzureCoreManagementToken {
     <#
     .DESCRIPTION
         Generate a Microsoft Azure Core Mangement token from a refresh token.
     .EXAMPLE
-        RefreshTo-AzureCoreManagementToken -domain myclient.org -refreshToken ey....
+        Invoke-RefreshToAzureCoreManagementToken -domain myclient.org -refreshToken ey....
         $AzureCoreManagementToken.access_token
     #>
     [cmdletbinding()]
@@ -777,6 +780,8 @@ function RefreshTo-AzureCoreManagementToken {
         [Parameter(Mandatory=$false)]
         [string]$refreshToken = $response.refresh_token,
         [Parameter(Mandatory=$False)]
+        [String]$ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
+        [Parameter(Mandatory=$False)]
         [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
         [String]$Device,
         [Parameter(Mandatory=$False)]
@@ -785,24 +790,23 @@ function RefreshTo-AzureCoreManagementToken {
     )
     if ($Device) {
 		if ($Browser) {
-			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
 		}
 		else {
-			$UserAgent = Forge-UserAgent -Device $Device
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device
 		}
 	}
 	else {
 	   if ($Browser) {
-			$UserAgent = Forge-UserAgent -Browser $Browser 
+			$UserAgent = Invoke-ForgeUserAgent -Browser $Browser 
 	   } 
 	   else {
-			$UserAgent = Forge-UserAgent
+			$UserAgent = Invoke-ForgeUserAgent
 	   }
 	}    
     $Headers=@{}
     $Headers["User-Agent"] = $UserAgent
     $Resource = "https://management.core.windows.net/"
-    $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
     $authUrl = "https://login.microsoftonline.com/$($TenantId)"
     $global:refreshToken = $response.refresh_token 
@@ -818,12 +822,12 @@ function RefreshTo-AzureCoreManagementToken {
     $global:AzureCoreManagementToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
     Write-Output $AzureCoreManagementToken
 }
-function RefreshTo-AzureManagementToken {
+function Invoke-RefreshToAzureManagementToken {
     <#
     .DESCRIPTION
         Generate a Microsoft Azure Mangement token from a refresh token.
     .EXAMPLE
-        RefreshTo-AzureManagementToken -domain myclient.org -refreshToken ey....
+        Invoke-RefreshToAzureManagementToken -domain myclient.org -refreshToken ey....
         $AzureManagementToken.access_token
     #>
     [cmdletbinding()]
@@ -833,6 +837,8 @@ function RefreshTo-AzureManagementToken {
         [Parameter(Mandatory=$false)]
         [string]$refreshToken = $response.refresh_token,
         [Parameter(Mandatory=$False)]
+        [String]$ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
+        [Parameter(Mandatory=$False)]
         [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
         [String]$Device,
         [Parameter(Mandatory=$False)]
@@ -841,24 +847,23 @@ function RefreshTo-AzureManagementToken {
     )
     if ($Device) {
 		if ($Browser) {
-			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
 		}
 		else {
-			$UserAgent = Forge-UserAgent -Device $Device
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device
 		}
 	}
 	else {
 	   if ($Browser) {
-			$UserAgent = Forge-UserAgent -Browser $Browser 
+			$UserAgent = Invoke-ForgeUserAgent -Browser $Browser 
 	   } 
 	   else {
-			$UserAgent = Forge-UserAgent
+			$UserAgent = Invoke-ForgeUserAgent
 	   }
 	}    
     $Headers=@{}
     $Headers["User-Agent"] = $UserAgent
     $Resource = "https://management.azure.com/"
-    $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
     $authUrl = "https://login.microsoftonline.com/$($TenantId)"
     $global:refreshToken = $response.refresh_token 
@@ -874,12 +879,12 @@ function RefreshTo-AzureManagementToken {
     $global:AzureManagementToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
     Write-Output $AzureManagementToken
 }
-function RefreshTo-MAMToken {
+function Invoke-RefreshToMAMToken {
     <#
     .DESCRIPTION
         Generate a Microsoft intune mam token from a refresh token.
     .EXAMPLE
-        RefreshTo-MAMToken -domain myclient.org -refreshToken ey....
+        Invoke-RefreshToMAMToken -domain myclient.org -refreshToken ey....
         $MAMToken.access_token
     #>
     [cmdletbinding()]
@@ -889,6 +894,8 @@ function RefreshTo-MAMToken {
         [Parameter(Mandatory=$false)]
         [string]$refreshToken = $response.refresh_token,
         [Parameter(Mandatory=$False)]
+        [String]$ClientId = "6c7e8096-f593-4d72-807f-a5f86dcc9c77",
+        [Parameter(Mandatory=$False)]
         [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
         [String]$Device,
         [Parameter(Mandatory=$False)]
@@ -897,24 +904,23 @@ function RefreshTo-MAMToken {
     )
     if ($Device) {
 		if ($Browser) {
-			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
 		}
 		else {
-			$UserAgent = Forge-UserAgent -Device $Device
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device
 		}
 	}
 	else {
 	   if ($Browser) {
-			$UserAgent = Forge-UserAgent -Browser $Browser 
+			$UserAgent = Invoke-ForgeUserAgent -Browser $Browser 
 	   } 
 	   else {
-			$UserAgent = Forge-UserAgent
+			$UserAgent = Invoke-ForgeUserAgent
 	   }
 	}    
     $Headers=@{}
     $Headers["User-Agent"] = $UserAgent
     $Resource = "https://intunemam.microsoftonline.com/"
-    $ClientId = "6c7e8096-f593-4d72-807f-a5f86dcc9c77"
     $TenantId = Get-TenantID -domain $domain
     $authUrl = "https://login.microsoftonline.com/$($TenantId)"
     $global:refreshToken = $response.refresh_token 
@@ -930,12 +936,12 @@ function RefreshTo-MAMToken {
     $global:MAMToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
     Write-Output $MamToken
 }
-function RefreshTo-DODMSGraphToken {
+function Invoke-RefreshToDODMSGraphToken {
     <#
     .DESCRIPTION
         Generate a Microsoft DOD Graph token from a refresh token.
     .EXAMPLE
-        RefreshTo-DODMSGraphToken -domain myclient.org -refreshToken ey....
+        Invoke-RefreshToDODMSGraphToken -domain myclient.org -refreshToken ey....
         $DODMSGraphToken.access_token
     #>
     [cmdletbinding()]
@@ -954,25 +960,24 @@ function RefreshTo-DODMSGraphToken {
     )
     if ($Device) {
 		if ($Browser) {
-			$UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
 		}
 		else {
-			$UserAgent = Forge-UserAgent -Device $Device
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device
 		}
 	}
 	else {
 	   if ($Browser) {
-			$UserAgent = Forge-UserAgent -Browser $Browser 
+			$UserAgent = Invoke-ForgeUserAgent -Browser $Browser 
 	   } 
 	   else {
-			$UserAgent = Forge-UserAgent
+			$UserAgent = Invoke-ForgeUserAgent
 	   }
 	}    
     $Headers=@{}
     $Headers["User-Agent"] = $UserAgent
       
     $Resource = "https://dod-graph.microsoft.us"
-    $ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c"
     $TenantId = Get-TenantID -domain $domain
     $authUrl = "https://login.microsoftonline.us/$($TenantId)"
     $global:refreshToken = $response.refresh_token 
@@ -988,17 +993,17 @@ function RefreshTo-DODMSGraphToken {
     $global:DODMSGraphToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
     Write-Output $DODMSGraphToken
 }
-function Clear-Token {
+function Invoke-ClearToken {
     <#
     .DESCRIPTION
         Clear or "Null" your tokens.
     .EXAMPLE
-        Clear-Token -Token All
-        Clear-Token -Token Substrate
+        Invoke-ClearToken -Token All
+        Invoke-ClearToken -Token Substrate
     #>
     [cmdletbinding()]
     Param([Parameter(Mandatory=$true)]
-    [ValidateSet("All","Response","Outlook","MSTeams","Graph","AzureCoreManagement","OfficeManagement","MSGraph","DODMSGraph","Custom","Substrate")]
+    [ValidateSet("All","Response","Outlook","MSTeams","Graph","AzureCoreManagement","OfficeManagement","MSGraph","DODMSGraph","Custom","Substrate","Yammer")]
     [string]$Token
     )
     if ($Token -eq "All") {
@@ -1013,6 +1018,7 @@ function Clear-Token {
         $global:DODMSGraphToken = $null
         $global:CustomToken = $null
         $global:SubstrateToken = $null
+        $global:YammerToken = $null
 
     }
     elseif ($Token -eq "Response") {
@@ -1041,5 +1047,8 @@ function Clear-Token {
     }
     elseif ($Token -eq "Substrate") {
         $global:SubstrateToken = $null
+    }
+    elseif ($Token -eq "Yammer") {
+        $global:YammerToken = $null
     }
 }

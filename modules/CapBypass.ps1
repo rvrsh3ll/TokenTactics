@@ -1,4 +1,4 @@
-function Forge-UserAgent
+function Invoke-ForgeUserAgent
 {
       <#
     .DESCRIPTION

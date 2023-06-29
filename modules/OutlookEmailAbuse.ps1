@@ -1,4 +1,4 @@
-function Open-OWAMailboxInBrowser
+function Invoke-OpenOWAMailboxInBrowser
 {
     <#
     .DESCRIPTION
@@ -73,13 +73,13 @@ function Open-OWAMailboxInBrowser
         }
    }  
 }
-function Dump-OWAMailboxViaMSGraphApi
+function Invoke-DumpOWAMailboxViaMSGraphApi
 {
 <#
     .DESCRIPTION
         Dump the OWA Office 365 mailbox with a Graph.Microsoft.com access token.
     .EXAMPLE
-        Dump-OWAMailboxViaMSGraphApi -AccessToken $MSGraphToken.access_token -mailFolder AllItems -top 1
+        Invoke-DumpOWAMailboxViaMSGraphApi -AccessToken $MSGraphToken.access_token -mailFolder AllItems -top 1
         ...
     #>
     [cmdletbinding()]

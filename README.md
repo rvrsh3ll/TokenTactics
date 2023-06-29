@@ -17,7 +17,7 @@ You may also use these tokens with [AAD Internals](https://o365blog.com/aadinter
 
 ```Get-Help Get-Azure-Token```
 
-```RefreshTo-SubstrateToken```
+```Invoke-RefreshToSubstrateToken```
 
 ### Generate Device Code
 
@@ -29,15 +29,21 @@ Once the user has logged in, you'll be presented with the JWT and it will be sav
 
 ### Refresh or Switch Tokens
 
-```RefreshTo-OutlookToken -domain myclient.org -refreshToken ey..```
+```Invoke-RefreshToOutlookToken -domain myclient.org -refreshToken 0.A```
 
 ```$OutlookToken.access_token```
 
 ### Connect
 ```Connect-AzureAD -AadAccessToken $response.access_token -AccountId user@myclient.org```
 
+### Refresh a PRT
+
+Once a PRT has been captured, auth with roadrecon to obtain your access_token and refresh_token. When refreshing with TokenTactics, use ClientID 1b730954-1685-4b74-9bfd-dac224a7b894.
+
+```Invoke-RefreshToMSGraphToken -domain myclient.org -ClientId 1b730954-1685-4b74-9bfd-dac224a7b894 -refreshToken 0.A```
+
 ### Clear tokens
-```Clear-Token -Token All```
+```Invoke-ClearToken -Token All```
 
 ### Commands
 ```powershell
@@ -45,27 +51,27 @@ Get-Command -Module TokenTactics
 
 CommandType     Name                                               Version    Source
 -----------     ----                                               -------    ------
-Function        Clear-Token                                        0.0.1      TokenTactics
-Function        Dump-OWAMailboxViaMSGraphApi                       0.0.1      TokenTactics
-Function        Forge-UserAgent                                    0.0.1      TokenTactics
-Function        Get-AzureToken                                     0.0.1      TokenTactics
-Function        Get-TenantID                                       0.0.1      TokenTactics
-Function        Open-OWAMailboxInBrowser                           0.0.1      TokenTactics
-Function        Parse-JWTtoken                                     0.0.1      TokenTactics
-Function        RefreshTo-AzureCoreManagementToken                 0.0.1      TokenTactics
-Function        RefreshTo-AzureManagementToken                     0.0.1      TokenTactics
-Function        RefreshTo-DODMSGraphToken                          0.0.1      TokenTactics
-Function        RefreshTo-GraphToken                               0.0.1      TokenTactics
-Function        RefreshTo-MAMToken                                 0.0.1      TokenTactics
-Function        RefreshTo-MSGraphToken                             0.0.1      TokenTactics
-Function        RefreshTo-MSManageToken                            0.0.1      TokenTactics
-Function        RefreshTo-MSTeamsToken                             0.0.1      TokenTactics
-Function        RefreshTo-O365SuiteUXToken                         0.0.1      TokenTactics
-Function        RefreshTo-OfficeAppsToken                          0.0.1      TokenTactics
-Function        RefreshTo-OfficeManagementToken                    0.0.1      TokenTactics
-Function        RefreshTo-OutlookToken                             0.0.1      TokenTactics
-Function        RefreshTo-SubstrateToken                           0.0.1      TokenTactics
-Function        RefreshTo-YammerToken                           0.0.1      TokenTactics
+Function        Invoke-ClearToken                                        0.0.2      TokenTactics
+Function        Invoke-DumpOWAMailboxViaMSGraphApi                       0.0.2      TokenTactics
+Function        Invoke-ForgeUserAgent                                    0.0.2      TokenTactics
+Function        Get-AzureToken                                           0.0.2      TokenTactics
+Function        Get-TenantID                                             0.0.2      TokenTactics
+Function        Invoke-OpenOWAMailboxInBrowser                           0.0.2      TokenTactics
+Function        Invoke-ParseJWTtoken                                     0.0.2      TokenTactics
+Function        Invoke-RefreshToAzureCoreManagementToken                 0.0.2      TokenTactics
+Function        Invoke-RefreshToAzureManagementToken                     0.0.2      TokenTactics
+Function        Invoke-RefreshToDODMSGraphToken                          0.0.2      TokenTactics
+Function        Invoke-RefreshToGraphToken                               0.0.2      TokenTactics
+Function        Invoke-RefreshToMAMToken                                 0.0.2      TokenTactics
+Function        Invoke-RefreshToMSGraphToken                             0.0.2      TokenTactics
+Function        Invoke-RefreshToMSManageToken                            0.0.2      TokenTactics
+Function        Invoke-RefreshToMSTeamsToken                             0.0.2      TokenTactics
+Function        Invoke-RefreshToO365SuiteUXToken                         0.0.2      TokenTactics
+Function        Invoke-RefreshToOfficeAppsToken                          0.0.2      TokenTactics
+Function        Invoke-RefreshToOfficeManagementToken                    0.0.2      TokenTactics
+Function        Invoke-RefreshToOutlookToken                             0.0.2      TokenTactics
+Function        Invoke-RefreshToSubstrateToken                           0.0.2      TokenTactics
+Function        Invoke-RefreshToYammerToken                              0.0.2      TokenTactics
 ```
 
 ## Authors and contributors
