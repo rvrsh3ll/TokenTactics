@@ -43,6 +43,7 @@ $functions=@(
     "Invoke-RefreshToDODMSGraphToken"
     "Invoke-RefreshToO365SuiteUXToken"
     "Invoke-RefreshToYammerToken"
+    "Invoke-RefreshToSharepointOnlineToken"
     "Invoke-ClearToken"
     # CapBypass.ps1
     "Invoke-ForgeUserAgent"

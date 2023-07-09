@@ -993,6 +993,66 @@ function Invoke-RefreshToDODMSGraphToken {
     $global:DODMSGraphToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body
     Write-Output $DODMSGraphToken
 }
+function Invoke-RefreshToSharepointOnlineToken {
+    <#
+    .DESCRIPTION
+        Generate a Microsoft Sharepoint Online token from a refresh token.
+    .EXAMPLE
+        Invoke-RefreshToSharepointOnlineToken -domain myclient.org -spoDomain myclient.sharepoint.com -refreshToken ey....
+        $SPOToken.access_token
+    #>
+    [cmdletbinding()]
+    Param(
+        [Parameter(Mandatory=$true)]
+        [string]$domain,
+        [Parameter(Mandatory=$true)]
+        [string]$spoDomain,
+        [Parameter(Mandatory=$false)]
+        [string]$refreshToken = $response.refresh_token,
+        [Parameter(Mandatory=$false)]
+        [string]$ClientID = "ab9b8c07-8f02-4f72-87fa-80105867a763",
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+        [String]$Device,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+        [String]$Browser
+    )
+    if ($Device) {
+		if ($Browser) {
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
+		}
+		else {
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device
+		}
+	}
+	else {
+	   if ($Browser) {
+			$UserAgent = Invoke-ForgeUserAgent -Browser $Browser 
+	   } 
+	   else {
+			$UserAgent = Invoke-ForgeUserAgent
+	   }
+	}    
+    $Headers=@{}
+    $Headers["User-Agent"] = $UserAgent
+
+    $Resource = "https://$($spoDomain)/"
+    $TenantId = Get-TenantID -domain $domain
+    $authUrl = "https://login.microsoftonline.com/$($TenantId)"
+    $global:refreshToken = $response.refresh_token
+    Write-Output $refreshToken
+    $body2 = @{
+        "resource" =      $Resource
+        "client_id" =     $ClientId
+        "grant_type" =    "refresh_token"
+        "refresh_token" = $refreshToken
+        "scope"=         "openid"
+    }
+    
+    $global:SPOToken = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "$($authUrl)/oauth2/token?api-version=1.0" -Headers $Headers -Body $body2
+    Write-Output $SPOToken
+}
 function Invoke-ClearToken {
     <#
     .DESCRIPTION
