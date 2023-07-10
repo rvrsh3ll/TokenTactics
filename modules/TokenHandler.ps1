@@ -255,6 +255,141 @@ function Get-AzureToken {
         }
     }
 }
+function Get-AzureTokenFromESTSCookie { 
+
+    <#
+    .DESCRIPTION
+        Authenticate to an application using Authorization Code flow
+        NOTE: This may require user interaction and may not work this way. 
+            In that case, use device code flow or `roadtx interactiveauth`
+
+    .EXAMPLE
+        Get-AzureTokenFromESTSCookie -Client MSTeams -estsAuthCookie "0.AbcAp.."
+    #>
+
+    [cmdletbinding()]
+    Param(
+        [Parameter(Mandatory=$False)]
+        [String[]]
+        [ValidateSet("MSTeams","MSEdge","AzurePowershell")]
+        $Client = "MSTeams",
+        [Parameter(Mandatory=$True)]
+        [String[]]
+        $estsAuthCookie,
+        [Parameter(Mandatory=$False)]
+        [String]
+        $Resource = "https://graph.microsoft.com/",
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
+        [String]$Device,
+        [Parameter(Mandatory=$False)]
+        [ValidateSet('Android','IE','Chrome','Firefox','Edge','Safari')]
+        [String]$Browser
+    )
+
+    if ($Device) {
+		if ($Browser) {
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
+		}
+		else {
+			$UserAgent = Invoke-ForgeUserAgent -Device $Device
+		}
+	}
+	else {
+	   if ($Browser) {
+			$UserAgent = Invoke-ForgeUserAgent -Browser $Browser 
+	   } 
+	   else {
+			$UserAgent = Invoke-ForgeUserAgent
+	   }
+	}
+
+
+   if($Client -eq "MSTeams") {
+        $client_id = "1fec8e78-bce4-4aaf-ab1b-5451cc387264"
+    }
+    elseif ($Client -eq "MSEdge") {
+        $client_id = "ecd6b820-32c2-49b6-98a6-444530e5a77a"
+    }
+    elseif ($Client -eq "AzurePowershell") {
+        $client_id = "1950a258-227b-4e31-a9cf-717495945fc2"
+    }
+    
+    $Headers=@{}
+    $Headers["User-Agent"] = $UserAgent
+
+    $cookie = "ESTSAUTHPERSISTENT=$($estsAuthCookie)"
+    $session = [Microsoft.PowerShell.Commands.WebRequestSession]::new()
+    $cookie = [System.Net.Cookie]::new("ESTSAUTHPERSISTENT", "$($estsAuthCookie)")
+    $session.Cookies.Add('https://login.microsoftonline.com/', $cookie)
+
+    $state = [System.Guid]::NewGuid().ToString()
+    $redirect_uri = ([System.Uri]::EscapeDataString("https://login.microsoftonline.com/common/oauth2/nativeclient"))
+
+	if ($PSVersionTable.PSVersion.Major -lt 7) { 
+		$sts_response = Invoke-WebRequest -UseBasicParsing -MaximumRedirection 0 -ErrorAction SilentlyContinue -WebSession $session -Method Get -Uri "https://login.microsoftonline.com/common/oauth2/authorize?response_type=code&client_id=$($client_id)&resource=$($Resource)&redirect_uri=$($redirect_uri)&state=$($state)" -Headers $Headers
+	}
+	
+	else {
+		$sts_response = Invoke-WebRequest -UseBasicParsing -SkipHttpErrorCheck -MaximumRedirection 0 -ErrorAction SilentlyContinue -WebSession $session -Method Get -Uri "https://login.microsoftonline.com/common/oauth2/authorize?response_type=code&client_id=$($client_id)&resource=$($Resource)&redirect_uri=$($redirect_uri)&state=$($state)" -Headers $Headers
+	} 
+
+    if ($sts_response.StatusCode -eq 302) {
+
+		if ($PSVersionTable.PSVersion.Major -lt 7) {
+			$uri = [System.Uri]$sts_response.Headers.Location
+		}
+		
+		else { $uri = [System.Uri]$sts_response.Headers.Location[0] } # goofy ass pwsh 7
+
+        $query = $uri.Query.TrimStart('?')
+
+        $queryParams = @{}
+        $paramPairs = $query.Split('&')
+
+        foreach ($pair in $paramPairs) {
+            $parts = $pair.Split('=')
+            $key = $parts[0]
+            $value = $parts[1]
+            $queryParams[$key] = $value
+        }
+
+        if ($queryParams.ContainsKey('code')) {
+            $refreshToken = $queryParams['code']
+        } else {
+            Write-Host "[-] Code not found in redirected URL path"
+            Write-Host "    Requested URL: https://login.microsoftonline.com/common/oauth2/authorize?response_type=code&client_id=$($client_id)&resource=$($Resource)&redirect_uri=$($redirect_uri)&state=$($state)"
+            Write-Host "    Response Code: $($sts_response.StatusCode)"
+            Write-Host "    Response URI: $($sts_response.Headers.Location)"
+            return
+        }
+
+    } else {
+            Write-Host "[-] No Redirect from authorization code request"
+            Write-Host "    Requested URL: https://login.microsoftonline.com/common/oauth2/authorize?response_type=code&client_id=$($client_id)&resource=$($Resource)&redirect_uri=$($redirect_uri)&state=$($state)"
+            Write-Host "    Response Code: $($sts_response.StatusCode)"
+            Write-Host "[-] The request may require user interation to complete"
+            return
+    }
+
+    if ($refreshToken){ 
+
+        $body = @{
+            "resource" =      $Resource
+            "client_id" =     $client_id
+            "grant_type" =    "authorization_code"
+            "redirect_uri" = "https://login.microsoftonline.com/common/oauth2/nativeclient"
+            "code" = $refreshToken
+            "scope" = "openid"
+        }
+
+        $global:response = Invoke-RestMethod -UseBasicParsing -Method Post -Uri "https://login.microsoftonline.com/common/oauth2/token" -Headers $Headers -Body $body
+        Write-Output $response
+        
+    } 
+
+}
+
 # Refresh Token Functions
 function Invoke-RefreshToSubstrateToken {
     <#
