@@ -259,7 +259,9 @@ function Get-AzureTokenFromESTSCookie {
 
     <#
     .DESCRIPTION
-        Authenticate to an application using Authorization Code flow
+        Authenticate to an application (default graph.microsoft.com) using Authorization Code flow.
+        Authenticates to MSGraph as Teams FOCI client by default.
+
         NOTE: This may require user interaction and may not work this way. 
             In that case, use device code flow or `roadtx interactiveauth`
 
@@ -340,7 +342,7 @@ function Get-AzureTokenFromESTSCookie {
 			$uri = [System.Uri]$sts_response.Headers.Location
 		}
 		
-		else { $uri = [System.Uri]$sts_response.Headers.Location[0] } # goofy ass pwsh 7
+		else { $uri = [System.Uri]$sts_response.Headers.Location[0] }
 
         $query = $uri.Query.TrimStart('?')
 
@@ -365,10 +367,10 @@ function Get-AzureTokenFromESTSCookie {
         }
 
     } else {
-            Write-Host "[-] No Redirect from authorization code request"
+            Write-Host "[-] Expected 302 redirect but received other status"
             Write-Host "    Requested URL: https://login.microsoftonline.com/common/oauth2/authorize?response_type=code&client_id=$($client_id)&resource=$($Resource)&redirect_uri=$($redirect_uri)&state=$($state)"
             Write-Host "    Response Code: $($sts_response.StatusCode)"
-            Write-Host "[-] The request may require user interation to complete"
+            Write-Host "[-] The request may require user interation to complete, or the provided cookie is invalid"
             return
     }
 
