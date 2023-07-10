@@ -22,6 +22,7 @@ You may also use these tokens with [AAD Internals](https://o365blog.com/aadinter
 ### Generate Device Code
 
 ```Get-AzureToken -Client MSGraph```
+
 Once the user has logged in, you'll be presented with the JWT and it will be saved in the $response variable. To access the access token use ```$response.access_token``` from your PowerShell window to display the token. You may also display the refresh token with ```$response.refresh_token```. Hint: You'll want the refresh token to keep refreshing to new access tokens! By default, Get-AzureToken results are logged to TokenLog.log.
 
 #### DOD/Mil Device Code
@@ -30,7 +31,11 @@ Once the user has logged in, you'll be presented with the JWT and it will be sav
 ### Get a Refresh Token from ESTSAuth* Cookie 
 
 ```Get-AzureTokenFromESTSCookie -estsAuthCookie "0.AbcApTk..." ```
+
 This module uses authorization code flow to obtain an access token and refresh token using ESTSAuth (or ESTSAuthPersistent) cookie. Useful if you have phished a session via Evilginx or have otherwise obtained this cookie. 
+
+Be sure to use the right cookie! `ESTSAuthPersistent` is only useful when a CA policy actually grants a persistent session. Otherwise, you should use `ESTSAuth`. You can usually tell which one to use based on length, the longer cookie is the one you want to use :) 
+
 *Note: This may not work in all cases as it may require user interaction. If this is the case, either use the Device Code flow above, or try `roadtx interactiveauth --estscookie`*
 
 ### Refresh or Switch Tokens
