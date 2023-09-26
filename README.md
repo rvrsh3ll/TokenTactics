@@ -15,7 +15,7 @@ You may also use these tokens with [AAD Internals](https://o365blog.com/aadinter
 
 ```Import-Module .\TokenTactics.psd1```
 
-```Get-Help Get-Azure-Token```
+```Get-Help Get-AzureToken```
 
 ```Invoke-RefreshToSubstrateToken```
 
