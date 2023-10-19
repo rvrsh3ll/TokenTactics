@@ -80,7 +80,7 @@ function Get-AzureToken {
     elseif ($Client -eq "MSTeams") {
         
         $body = @{
-            "client_id" =     "d3590ed6-52b3-4102-aeff-aad2292ab01c"
+            "client_id" =     "1fec8e78-bce4-4aaf-ab1b-5451cc387264"
             "resource" =      "https://api.spaces.skype.com/"   
         }
     }
@@ -440,7 +440,7 @@ function Invoke-RefreshToMSTeamsToken {
     [Parameter(Mandatory=$false)]
     [string]$refreshToken = $response.refresh_token,
     [Parameter(Mandatory=$False)]
-    [String]$ClientId = "d3590ed6-52b3-4102-aeff-aad2292ab01c",
+    [String]$ClientId = "1fec8e78-bce4-4aaf-ab1b-5451cc387264",
     [Parameter(Mandatory=$False)]
     [ValidateSet('Mac','Windows','AndroidMobile','iPhone')]
     [String]$Device,
