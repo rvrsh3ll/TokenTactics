@@ -23,8 +23,8 @@ Write-Output "Running Commands.."
 Write-Output "az group create --name $ResourceGroup --location $location"
 az group create --name $ResourceGroup --location $location
 Start-Sleep -Seconds 5
-Write-Output "az vm create --resource-group $ResourceGroup --name webinar --image Ubuntu2204 --public-ip-sku Standard --public-ip-address-dns-name $vmPublicDNSName --admin-username azureuser --ssh-key-values $pubKey"
-az vm create --resource-group $ResourceGroup --name $vmName --image Ubuntu2204 --public-ip-sku Standard --public-ip-address-dns-name $vmPublicDNSName --admin-username azureuser --ssh-key-values $pubKey
+Write-Output "az vm create --resource-group $ResourceGroup --name webinar --image Ubuntu22.04 --public-ip-sku Standard --public-ip-address-dns-name $vmPublicDNSName --admin-username azureuser --ssh-key-values $pubKey"
+az vm create --resource-group $ResourceGroup --name $vmName --image Ubuntu22.04 --public-ip-sku Standard --public-ip-address-dns-name $vmPublicDNSName --admin-username azureuser --ssh-key-values $pubKey
 Start-Sleep -Seconds 5
 Write-Output "az vm open-port --port 80,443,8443 --resource-group $ResourceGroup --name $vmName"
 az vm open-port --port 80,443,8443 --resource-group $ResourceGroup --name $vmName
