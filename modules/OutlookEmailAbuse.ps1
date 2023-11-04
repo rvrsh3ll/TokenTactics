@@ -31,22 +31,22 @@ function Invoke-OpenOWAMailboxInBrowser
             {
                 if ($Browser)
                 {
-                    $UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+                    $UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
                 }
                 else
                 {
-                    $UserAgent = Forge-UserAgent -Device $Device
+                    $UserAgent = Invoke-ForgeUserAgent -Device $Device
                 }
             }
             else 
             {
                if ($Browser)
                {
-                    $UserAgent = Forge-UserAgent -Browser $Browser 
+                    $UserAgent = Invoke-ForgeUserAgent -Browser $Browser 
                } 
                else 
                {
-                    $UserAgent = Forge-UserAgent
+                    $UserAgent = Invoke-ForgeUserAgent
                }
             }
             $Headers=@{}
@@ -102,18 +102,18 @@ function Invoke-DumpOWAMailboxViaMSGraphApi
     {
         if ($Device) {
             if ($Browser) {
-                $UserAgent = Forge-UserAgent -Device $Device -Browser $Browser
+                $UserAgent = Invoke-ForgeUserAgent -Device $Device -Browser $Browser
             }
             else {
-                $UserAgent = Forge-UserAgent -Device $Device
+                $UserAgent = Invoke-ForgeUserAgent -Device $Device
             }
         }
         else {
            if ($Browser) {
-                $UserAgent = Forge-UserAgent -Browser $Browser 
+                $UserAgent = Invoke-ForgeUserAgent -Browser $Browser 
            } 
            else {
-                $UserAgent = Forge-UserAgent
+                $UserAgent = Invoke-ForgeUserAgent
            }
         }
         $ApiVersion = "v1.0"
