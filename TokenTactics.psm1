@@ -29,6 +29,7 @@ $functions=@(
     "Invoke-GetTenantID"
     # TokenHandler.ps1
     "Get-AzureToken"
+    "Get-AzureTokenFromESTSCookie"
     "Invoke-RefreshToSubstrateToken"
     "Invoke-RefreshToMSManageToken"
     "Invoke-RefreshToMSTeamsToken"

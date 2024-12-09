@@ -22,10 +22,21 @@ You may also use these tokens with [AAD Internals](https://o365blog.com/aadinter
 ### Generate Device Code
 
 ```Get-AzureToken -Client MSGraph```
+
 Once the user has logged in, you'll be presented with the JWT and it will be saved in the $response variable. To access the access token use ```$response.access_token``` from your PowerShell window to display the token. You may also display the refresh token with ```$response.refresh_token```. Hint: You'll want the refresh token to keep refreshing to new access tokens! By default, Get-AzureToken results are logged to TokenLog.log.
 
 #### DOD/Mil Device Code
 ```Get-AzureToken -Client DODMSGraph```
+
+### Get a Refresh Token from ESTSAuth* Cookie 
+
+```Get-AzureTokenFromESTSCookie -estsAuthCookie "0.AbcApTk..." ```
+
+This module uses authorization code flow to obtain an access token and refresh token using ESTSAuth (or ESTSAuthPersistent) cookie. Useful if you have phished a session via Evilginx or have otherwise obtained this cookie. 
+
+Be sure to use the right cookie! `ESTSAuthPersistent` is only useful when a CA policy actually grants a persistent session. Otherwise, you should use `ESTSAuth`. You can usually tell which one to use based on length, the longer cookie is the one you want to use :) 
+
+*Note: This may not work in all cases as it may require user interaction. If this is the case, either use the Device Code flow above, or try `roadtx interactiveauth --estscookie`*
 
 ### Refresh or Switch Tokens
 
@@ -51,27 +62,27 @@ Get-Command -Module TokenTactics
 
 CommandType     Name                                               Version    Source
 -----------     ----                                               -------    ------
-Function        Invoke-ClearToken                                        0.0.2      TokenTactics
-Function        Invoke-DumpOWAMailboxViaMSGraphApi                       0.0.2      TokenTactics
-Function        Invoke-ForgeUserAgent                                    0.0.2      TokenTactics
-Function        Get-AzureToken                                           0.0.2      TokenTactics
-Function        Get-TenantID                                             0.0.2      TokenTactics
-Function        Invoke-OpenOWAMailboxInBrowser                           0.0.2      TokenTactics
-Function        Invoke-ParseJWTtoken                                     0.0.2      TokenTactics
-Function        Invoke-RefreshToAzureCoreManagementToken                 0.0.2      TokenTactics
-Function        Invoke-RefreshToAzureManagementToken                     0.0.2      TokenTactics
-Function        Invoke-RefreshToDODMSGraphToken                          0.0.2      TokenTactics
-Function        Invoke-RefreshToGraphToken                               0.0.2      TokenTactics
-Function        Invoke-RefreshToMAMToken                                 0.0.2      TokenTactics
-Function        Invoke-RefreshToMSGraphToken                             0.0.2      TokenTactics
-Function        Invoke-RefreshToMSManageToken                            0.0.2      TokenTactics
-Function        Invoke-RefreshToMSTeamsToken                             0.0.2      TokenTactics
-Function        Invoke-RefreshToO365SuiteUXToken                         0.0.2      TokenTactics
-Function        Invoke-RefreshToOfficeAppsToken                          0.0.2      TokenTactics
-Function        Invoke-RefreshToOfficeManagementToken                    0.0.2      TokenTactics
-Function        Invoke-RefreshToOutlookToken                             0.0.2      TokenTactics
-Function        Invoke-RefreshToSubstrateToken                           0.0.2      TokenTactics
-Function        Invoke-RefreshToYammerToken                              0.0.2      TokenTactics
+Function        Get-AzureToken                                     0.0.2      TokenTactics
+Function        Get-AzureTokenFromESTSCookie                       0.0.2      TokenTactics
+Function        Invoke-ClearToken                                  0.0.2      TokenTactics
+Function        Invoke-DumpOWAMailboxViaMSGraphApi                 0.0.2      TokenTactics
+Function        Invoke-ForgeUserAgent                              0.0.2      TokenTactics
+Function        Invoke-OpenOWAMailboxInBrowser                     0.0.2      TokenTactics
+Function        Invoke-ParseJWTtoken                               0.0.2      TokenTactics
+Function        Invoke-RefreshToAzureCoreManagementToken           0.0.2      TokenTactics
+Function        Invoke-RefreshToAzureManagementToken               0.0.2      TokenTactics
+Function        Invoke-RefreshToDODMSGraphToken                    0.0.2      TokenTactics
+Function        Invoke-RefreshToGraphToken                         0.0.2      TokenTactics
+Function        Invoke-RefreshToMAMToken                           0.0.2      TokenTactics
+Function        Invoke-RefreshToMSGraphToken                       0.0.2      TokenTactics
+Function        Invoke-RefreshToMSManageToken                      0.0.2      TokenTactics
+Function        Invoke-RefreshToMSTeamsToken                       0.0.2      TokenTactics
+Function        Invoke-RefreshToOfficeAppsToken                    0.0.2      TokenTactics
+Function        Invoke-RefreshToOfficeManagementToken              0.0.2      TokenTactics
+Function        Invoke-RefreshToOutlookToken                       0.0.2      TokenTactics
+Function        Invoke-RefreshToSharepointOnlineToken              0.0.2      TokenTactics
+Function        Invoke-RefreshToSubstrateToken                     0.0.2      TokenTactics
+Function        Invoke-RefreshToYammerToken                        0.0.2      TokenTactics
 ```
 
 ## Authors and contributors
